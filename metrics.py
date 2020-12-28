@@ -108,3 +108,4 @@ def compute_accuracy(logits, ground_truth, top_k=1):
     correct = pred.eq(ground_truth.reshape(1, -1).expand_as(pred))
     correct_k = correct[:top_k].reshape(-1).float().sum(0)
     return correct_k.mul_(100.0 / batch_size)
+
