@@ -119,8 +119,14 @@ class SpecRandomCrop():
     def __call__(self, spec):
         # size = int(spec.shape[1] * self.crop_size)
         size = 1000
+        if spec.size(0) < 1000:
+            time_pad = (0, 1000-spec.size(0), 0, 0)
+            pad = torch.nn.ZeroPad2d(time_pad)
+            spec = pad(spec.unsqueeze(0).unsqueeze(0)).squeeze()
+
         start = random.randint(0, (spec.shape[1] - size))
         return spec[:, start : (start + size)]
+        
 
 class SpecFixedCrop():
 
@@ -131,6 +137,10 @@ class SpecFixedCrop():
         # size = int(spec.shape[1] * self.crop_size)
         size = 1000
         start = 250
+        if spec.size(0) < 1000:
+            time_pad = (0, 1000-spec.size(0), 0, 0)
+            pad = torch.nn.ZeroPad2d(time_pad)
+            spec = pad(spec.unsqueeze(0).unsqueeze(0)).squeeze()
         return spec[:, start : (start + size)]
 
 
@@ -204,7 +214,7 @@ class SpecShuffle():
         np.random.shuffle(segments)
 
         #used to be reshape(1000,128), but the spec is cropped at top now
-        segments =  segments.flatten().reshape(1000,113).T
+        segments =  segments.flatten().reshape(1000,128).T
         return torch.from_numpy(segments)
         # return spec
 
@@ -216,7 +226,7 @@ class SpecPermutes():
     def __call__(self, spec):
         segments = np.array(np.split(spec.T.numpy(), 4, axis=0))
         permutes = list(permutations(segments))
-        permutes = [numpy.asarray(seg).flatten().reshape(1000,113).T for seg in permutes]
+        permutes = [numpy.asarray(seg).flatten().reshape(1000,128).T for seg in permutes]
         #returns all permutations of segmented spectrogram
 
         return torch.from_numpy(np.array(permutes))
