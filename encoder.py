@@ -1,9 +1,14 @@
 import torch
 import torchaudio
 import torchvision
+import torch.nn as nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
-import pytorch_lightning as pl
 from efficientnet_pytorch import EfficientNet
+
+import pytorch_lightning as pl
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
+
 
 import numpy as np
 import pandas as pd 
@@ -15,18 +20,23 @@ from collections import Counter
 import copy
 import os
 
-from dataloader import *
 from metrics import *
+from data import *
 
+wandb_logger = WandbLogger(name='shuffle_prediction',project='temporal_contastive_learning')
 
 #Implementation from
 # https://github.com/CVxTz/COLA_pytorch/blob/master/audio_encoder/encoder.py
-class AudioFeatureModel(torch.nn.Module):
-    def __init__(self, dropout=0.1, model_dimension=512):
-        super(AudioFeatureModel, self).__init__()
+class TemporalOrderPrediction(pl.LightningModule):
+    def __init__(self, dropout=0.1, model_dimension=512, num_classes=25):
+        super(TemporalOrderPrediction, self).__init__()
+
+        self._num_classes = num_classes
+
+        #bsz*accum_grad = 16*64 = 1024 for effective batch_size
+        self._bsz = 8
 
         self._model_dimension = model_dimension
-        self._dropout = 0.1
 
         self._cnn1 = torch.nn.Conv2d(
                                 in_channels=1, 
@@ -36,200 +46,140 @@ class AudioFeatureModel(torch.nn.Module):
         self._efficientnet = EfficientNet.from_name(
                                 "efficientnet-b0", 
                                 include_top=False, 
-                                drop_connect_rate=self._dropout)
+                                drop_connect_rate=0.1)
 
         self._fc1 = nn.Linear(1280, self._model_dimension)
+        self._fc2 = nn.Linear(self._model_dimension, self._num_classes)
 
-        self._dropout = torch.nn.Dropout(p=self._dropout)
+        self._layer_norm1 = torch.nn.LayerNorm(normalized_shape=self._model_dimension)
+        self._layer_norm2 = torch.nn.LayerNorm(normalized_shape=self._num_classes)
 
-        self._layer_norm = torch.nn.LayerNorm(normalized_shape=self._model_dimension)
+        self._dropout = torch.nn.Dropout(p=0.1)
+        self._softmax = torch.nn.Softmax()
 
+        self._lr = 1e-4
+        self._loss = torch.nn.CrossEntropyLoss()
 
-    def forward(self, input_audio):
+    def forward(self, input):
         #Input B * C * M * T
 
         # x = x.type(torch.FloatTensor)
 
         #Filter out NaN -inf values at top of spec (mel bins), and unsqueeze channel
-        x = input_audio.unsqueeze(1)
+        x = input.unsqueeze(1)
 
         x = self._cnn1(x)
         x = self._efficientnet(x)
         x =  x.squeeze(3).squeeze(2)
         x = self._dropout(self._fc1(x))
-        x = self._dropout(torch.tanh(self._layer_norm(x)))
+        x = self._dropout(torch.tanh(self._layer_norm1(x)))
+        x = self._softmax(self._fc2(x))
 
-        #Output B * D, D=1024
+        #Output B * N, N = num_classes
         return x
 
-#Implemenation from https://github.com/CannyLab/aai/blob/e51bc4f0926530c39f289a948e0a1daebed3475a/aai/research/gptcaptions/models/encoders/predictive_byol.py#L21
-class VideoFeatureModel(torch.nn.Module):
-    def __init__(self, dropout=0.1, model_dimension=128):
-        super(VideoFeatureModel, self).__init__()
 
-        self._model_dimension = model_dimension
-        self._feature_dimension = model_dimension/4
+    def training_step(self, batch, batch_idx):
+        sample, label = batch
+        logits = self.forward(sample)
+        loss = self._loss(logits, label)
+        logs = {'loss': loss}
+        return {'loss': loss, 'log': logs}
 
+    def validation_step(self, batch, batch_idx):
+      sample, label = batch
+      logits = self.forward(sample)
+      loss = self._loss(logits, label)
 
-        self._dropout = dropout
+      top_1_accuracy = compute_accuracy(logits, label, top_k=1)
+      top_5_accuracy = compute_accuracy(logits, label, top_k=5)
+      
+      logs = {
+            'val_loss': loss,
+            'val_top_1': top_1_accuracy,
+            'val_top_5': top_5_accuracy}
 
-        self._resnet_model = torchvision.models.resnet18(pretrained=True)
+      return logs
 
-        self._feature_model = torch.nn.Sequential(
-            self._resnet_model.conv1,
-            self._resnet_model.bn1,
-            self._resnet_model.relu,
-            self._resnet_model.maxpool,
-            self._resnet_model.layer1,
-            self._resnet_model.layer2,
-            self._resnet_model.layer3,
-            self._resnet_model.layer4,
-        )
+    def test_step(self, batch, batch_idx):
+      sample, label = batch
+      logits = self.forward(sample)
+      loss = self._loss(logits, label)
 
-        self._frame_input_projection = torch.nn.Sequential(
-            torch.nn.BatchNorm1d(self._feature_dimension),
-            torch.nn.Linear(self._model_dimension, self._feature_dimension),
-            torch.nn.ReLU(),
-        )
+      top_1_accuracy = compute_accuracy(logits, label, top_k=1)
+      top_5_accuracy = compute_accuracy(logits, label, top_k=5)
 
-        self._encoder_layer = torch.nn.moduels.TransformerEncoderLayer(d_model=self._feature_dimension,
-                                                                 nhead=self._num_heads,
-                                                                 dim_feedforward=self._model_dimension,
-                                                                 dropout=self._dropout,
-                                                                 activation='relu')
-        self._encoder = torch.nn.modules.TransformerEncoder(encoder_layer=self._encoder_layer,
-                                                                    num_layers=self._num_layers)
+      logs = {
+            'test_loss': loss,
+            'test_top_1': top_1_accuracy,
+            'test_top_5': top_5_accuracy}
 
-        self._fc1 = nn.Linear(self._feature_dimension, self._model_dimension)
+      return logs
 
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([m['val_loss'] for m in outputs]).mean()
+        avg_top1 = torch.stack([m['val_top_1'] for m in outputs]).mean()
+        avg_top5 = torch.stack([m['val_top_5'] for m in outputs]).mean()
 
-    #Implementation from https://github.com/CannyLab/aai/blob/e51bc4f0926530c39f289a948e0a1daebed3475a/aai/utils/torch/masking.py#L39
-    # def sequence_mask(lengths, maxlen=None, right_aligned=False):
-    #     # https://discuss.pytorch.org/t/pytorch-equivalent-for-tf-sequence-mask/39036
-    #     if maxlen is None:
-    #         maxlen = lengths.max()
-    #     matrix = torch.unsqueeze(lengths, dim=-1)
-    #     row_vector = torch.arange(0, maxlen, 1).type_as(matrix)
-    #     if not right_aligned:
-    #         mask = row_vector < matrix
-    #     else:
-    #         mask = row_vector > (-matrix + (maxlen - 1))
+        logs = {
+        'val_loss': avg_loss,
+        'val_top_1': avg_top1,
+        'val_top_5': avg_top5}
 
-    #     return mask.bool()
+        return {'val_loss': avg_loss, 'log': logs}
 
-    # def get_src_conditional_mask(max_sequence_length):
-    #     mask = (torch.triu(torch.ones(max_sequence_length, max_sequence_length)) == 1).transpose(0, 1)
-    #     return mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+    def collate_fn(self, batch):
 
+        batch = np.transpose(batch)
+        # print(batch[0].shape)
+        # print(batch[1].shape)
 
-    def forward(self, input_video):
-        #Input B * T * H * W * C
+        data =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
+        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[1]))).long()
+        return data, labels
 
-        # x = x.type(torch.FloatTensor)
+    def train_dataloader(self):
+        dataset = TemporalShuffleData(data_type='train')
+        return torch.utils.data.DataLoader(
+                                dataset,
+                                batch_size=self._bsz,
+                                shuffle=True,
+                                collate_fn=self.collate_fn,
+                                num_workers=8)
 
-        video_frames = input_video.reshape(-1, *input_video.shape[2:])
-        frames_encoded = self._feature_model(video_frames.contiguous())
-        frames_encoded = frames_encoded.reshape(input_video.shape[0], -1,
-                                                *frames_encoded.shape[1:]).mean(dim=(3, 4))
+    def val_dataloader(self):
+          dataset = TemporalShuffleData(data_type='validate')
+          return torch.utils.data.DataLoader(
+                                  dataset,
+                                  batch_size=self._bsz,
+                                  shuffle=True,
+                                  collate_fn=self.collate_fn,
+                                  num_workers=8)
 
-        #B * T * D
-        frames_encoded = self._frame_input_projection(frames_encoded.reshape(-1, self._feature_dimension)).reshape(
-            frames_encoded.shape[0], frames_encoded.shape[1], self._model_dimension)
+    def test_dataloader(self):
+        dataset = TemporalShuffleData(data_type='test')
+        return torch.utils.data.DataLoader(
+                                dataset,
+                                batch_size=self._bsz,
+                                collate_fn=self.collate_fn,
+                                shuffle=False,
+                                num_workers=8)
 
-        #B * D
-        video_features = self._encoder(src=frames_encoded).transpose(0, 1).mean(dim=0)
-
-        #B * F
-        video_features = self._fc1(self._dropout(video_features))
-
-        return video_features
-
-class BYOLEncoder(torch.nn.Module):
-
-    def __init__(self):
-        super(BYOLEncoder, self).__init__()
-
-        self._model_dimension = 512
-
-        self._audio_feature_model = AudioFeatureModel(
-                                dropout=0.1,
-                                model_dimension=self._model_dimension)
-
-        self._video_feature_model = VideoFeatureModel(
-                                dropout=0.1,
-                                model_dimension=self._model_dimension)
-
-
-        #Implementation from
-        #https://github.com/CannyLab/aai/blob/ddc76404bdfe15fb8218c31d9dc6859f3d5420db/aai/research/gptcaptions/models/encoders/predictive_byol.py
-        self._representation_mlp = torch.nn.Sequential(
-            torch.nn.Linear(self._model_dimension, self._model_dimension),
-            torch.nn.BatchNorm1d(self._model_dimension),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self._model_dimension, self._model_dimension),
-        )
-        self._byol_predictor = torch.nn.Sequential(
-            torch.nn.Linear(self._model_dimension, self._model_dimension),
-            torch.nn.BatchNorm1d(self._model_dimension),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self._model_dimension, self._model_dimension),
-        )
-
-        self._translation_mlp = torch.nn.Sequential(
-            torch.nn.Linear(2 * self._model_dimension, self._model_dimension),
-            torch.nn.ReLU(),
-            torch.nn.Linear(self._model_dimension, self._model_dimension),
-        )
-
-        self._target_encoder = None
-        self._target_networks_initialized = False
-        self._ema_beta = ema_beta
-
-
-    def get_paramaters(self,):
-        params = []
-        params += list(self._encoder.parameters())
-        if self._target_encoder is not None:
-            params += list(self._target_encoder.parameters())
-        params += list(self._representation_mlp.parameters())
-        params += list(self._byol_predictor.parameters())
-        params += list(self._translation_mlp.parameters())
-
-        return params
-
-    def reset_moving_average(self):
-        del self._target_encoder
-        self._target_encoder = None
-
-
-    def _ema_copy_model(self, online_model, target_model):
-        for current_params, target_params in zip(online_model.parameters(), target_model.parameters()):
-            old_weight, new_weight = target_params.data, current_params.data
-            target_params.data = old_weight * self._ema_beta + (1 - self._ema_beta) * new_weight
-
-
-    def update_moving_average(self):
-        if self._target_encoder is not None:
-            self._ema_copy_model(self._encoder, self._target_encoder)
-
-
-    def byol_encode(self, x, online=True):
-        if online:
-            x = self._encoder(x)
-        else:
-            if not self._target_networks_initialized:
-                self._target_encoder = copy.deepcopy(self._encoder)
-                self._target_networks_initialized = True
-            x = self._target_encoder(x)
-        x = self._representation_mlp(x)
-        return x
-
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=self._lr)
     
-    def forward(self, x):
-        x1, x2 = x
+        #to replicate supcon cross-entropy, use these hparams: https://github.com/google-research/google-research/blob/master/supcon/scripts/cross_entropy_cifar10_resnet50.sh
+        # optimizer = torch.optim.SGD(
+        #                     self.parameters(), 
+        #                     lr=self.lr, 
+        #                     momentum=0.0, 
+        #                     weight_decay=0,
+        #                     nesterov=False)
+        # return optimizer
 
-        x1 = self._feature_model(x1)
-        x2 = self._feature_model(x2)
 
-        return x1, x2
-    
+        # scheduler = torch.optim.lr_scheduler.StepLR(
+        #                     optimizer, 
+        #                     step_size=40, 
+        #                     gamma=0.1)
+        # return [optimizer], [scheduler]
