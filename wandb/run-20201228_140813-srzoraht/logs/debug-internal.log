@@ -1,0 +1,213 @@
+2020-12-28 14:08:13,549 INFO    MainThread:527491 [internal.py:wandb_internal():62] W&B internal server running at pid: 527491
+2020-12-28 14:08:13,551 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: check_version
+2020-12-28 14:08:13,551 INFO    WriterThread:527491 [datastore.py:open_for_write():76] open: wandb/run-20201228_140813-srzoraht/run-srzoraht.wandb
+2020-12-28 14:08:13,553 DEBUG   SenderThread:527491 [sender.py:send():88] send: header
+2020-12-28 14:08:13,553 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:13,554 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: check_version
+2020-12-28 14:08:13,558 DEBUG   Thread-4  :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): pypi.org:443
+2020-12-28 14:08:13,580 DEBUG   Thread-4  :527491 [connectionpool.py:_make_request():442] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 52216
+2020-12-28 14:08:13,591 DEBUG   SenderThread:527491 [sender.py:send():88] send: run
+2020-12-28 14:08:13,593 INFO    SenderThread:527491 [sender.py:_maybe_setup_resume():269] checking resume status for None/temporal_contastive_learning/srzoraht
+2020-12-28 14:08:13,598 DEBUG   SenderThread:527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:13,676 DEBUG   SenderThread:527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:13,681 DEBUG   SenderThread:527491 [cmd.py:execute():719] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/sgurram/Projects/temporal_contrastive_learning, universal_newlines=False, shell=None, istream=<valid stream>)
+2020-12-28 14:08:13,695 DEBUG   SenderThread:527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:14,279 DEBUG   SenderThread:527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:14,287 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: run_start
+2020-12-28 14:08:14,290 INFO    SenderThread:527491 [dir_watcher.py:__init__():149] watching files in: wandb/run-20201228_140813-srzoraht/files
+2020-12-28 14:08:14,290 INFO    SenderThread:527491 [sender.py:_start_run_threads():464] run started: srzoraht with start time 1609193293
+2020-12-28 14:08:14,290 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:14,291 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:14,305 DEBUG   HandlerThread:527491 [cmd.py:execute():719] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/sgurram/Projects/temporal_contrastive_learning, universal_newlines=False, shell=None, istream=<valid stream>)
+2020-12-28 14:08:14,311 DEBUG   HandlerThread:527491 [cmd.py:execute():719] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/sgurram/Projects/temporal_contrastive_learning, universal_newlines=False, shell=None, istream=None)
+2020-12-28 14:08:14,446 DEBUG   SenderThread:527491 [sender.py:send():88] send: files
+2020-12-28 14:08:14,446 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-metadata.json with policy now
+2020-12-28 14:08:14,456 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: status
+2020-12-28 14:08:14,456 DEBUG   Thread-11 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:14,457 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:14,457 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: status
+2020-12-28 14:08:14,459 DEBUG   SenderThread:527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:14,540 DEBUG   SenderThread:527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:14,553 DEBUG   Thread-11 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:14,559 DEBUG   Thread-11 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:14,872 DEBUG   Thread-11 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/wandb-metadata.json?Expires=1609279694&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=nCHGFeG9cV2b%2BYNO%2FwrZV8EpyjJzUuuUEHysnJt5aYN9K0sChGMgjP%2FIk3%2Berg2nVzwU5XO7FrDmiseTHeMqOlWdH5y1jznmjVoNTSDPMaEiL77Wk6jHeodHatwlDK0Lz0leifQrE2E8rsv0k22O%2Fa6Go1K9JBrguBAC17CMEVQPkBzsS%2Br1YyooK4VKTzVxcwmkHkr0jRhWOwCHxRSBZs%2BTzZJqNXn%2BaDCez2SvzrBGkRpr7j%2FNB4v%2B%2FN7%2Bcj7UOAB%2B3nD6MC0vfKK3CAZvj22O8QF6o8hg2m4A0kN%2B%2BINa%2BpEXFzCYh4Q%2Fj1siDZ4oU3ozD0b6cEpqO5uUf8TmAA%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:14,874 INFO    Thread-11 :527491 [upload_job.py:push():112] Uploaded file /tmp/tmppgwfizmmwandb/28zu6r2p-wandb-metadata.json
+2020-12-28 14:08:15,293 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/requirements.txt
+2020-12-28 14:08:15,293 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/wandb-summary.json
+2020-12-28 14:08:15,294 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:15,295 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/wandb-metadata.json
+2020-12-28 14:08:16,291 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:17,828 DEBUG   Thread-5  :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:17,932 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:18,066 DEBUG   SenderThread:527491 [sender.py:send():88] send: stats
+2020-12-28 14:08:18,292 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:19,664 DEBUG   SenderThread:527491 [sender.py:send():88] send: config
+2020-12-28 14:08:19,674 DEBUG   SenderThread:527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:19,774 DEBUG   SenderThread:527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:20,293 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/config.yaml
+2020-12-28 14:08:20,293 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:21,874 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:22,294 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:22,737 DEBUG   SenderThread:527491 [sender.py:send():88] send: stats
+2020-12-28 14:08:23,295 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:24,295 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:24,826 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:26,249 DEBUG   SenderThread:527491 [sender.py:send():88] send: files
+2020-12-28 14:08:26,249 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json with policy now
+2020-12-28 14:08:26,251 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,251 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,251 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,251 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,257 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,258 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,258 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,258 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,259 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,259 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,259 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,277 DEBUG   Thread-12 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:26,278 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,278 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,278 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,278 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,279 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/wandb-summary.json
+2020-12-28 14:08:26,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json
+2020-12-28 14:08:26,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/media/graph
+2020-12-28 14:08:26,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_created():188] file/dir created: wandb/run-20201228_140813-srzoraht/files/media
+2020-12-28 14:08:26,366 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:26,366 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:26,385 DEBUG   Thread-12 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:26,391 DEBUG   Thread-12 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:26,682 DEBUG   Thread-12 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json?Expires=1609279706&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=AFxM%2BTYxbiL2tFZj%2FrBoFQCTqmQ2H%2B2MTYQdvcJFyQO2G8sZlx6ZiDvNCf57Qw%2BzDMcu3wvfghI8RZ8xX9u00UWotQxT8ct0SxpKi8jhcQW0IbQJNLKJn3jmna%2Bh4yYMV%2BqAGqqgpDMgtMskxMm%2BaSSAUzhYdtAirvFptxRbZRJTqLPeUTsvFyub3vxZB6KsJy%2FUfsLw%2B%2BGR1PpLLQr77NQ3tdXh%2Bhc9xXNjvwdc3gqdvzZbc4dp00txhFzQkBqBmzy3wiSbc6qqx0Fg%2FJpZ84oWsATUOgbELbZyBzJVLb01Oa8sz5SxqcXwezaqS8UNJperHuG4Ky3OftuvFyKrxg%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:26,684 INFO    Thread-12 :527491 [upload_job.py:push():112] Uploaded file /tmp/tmppgwfizmmwandb/61tmnfjv-media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json
+2020-12-28 14:08:27,298 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/wandb-summary.json
+2020-12-28 14:08:27,298 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:27,466 DEBUG   SenderThread:527491 [sender.py:send():88] send: stats
+2020-12-28 14:08:27,572 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:28,298 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:29,299 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:29,545 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: status
+2020-12-28 14:08:29,545 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:29,545 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: status
+2020-12-28 14:08:29,547 DEBUG   SenderThread:527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:29,625 DEBUG   SenderThread:527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:30,299 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:31,300 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:32,058 DEBUG   SenderThread:527491 [sender.py:send():88] send: stats
+2020-12-28 14:08:32,140 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:32,300 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:33,301 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:34,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:34,503 WARNING MainThread:527491 [internal.py:wandb_internal():116] Internal process interrupt: 1
+2020-12-28 14:08:34,880 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:35,086 DEBUG   SenderThread:527491 [sender.py:send():88] send: exit
+2020-12-28 14:08:35,086 INFO    SenderThread:527491 [sender.py:send_exit():156] handling exit code: 0
+2020-12-28 14:08:35,087 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: poll_exit
+2020-12-28 14:08:35,087 INFO    SenderThread:527491 [sender.py:send_exit():164] send defer
+2020-12-28 14:08:35,087 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,087 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: poll_exit
+2020-12-28 14:08:35,088 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,088 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 0
+2020-12-28 14:08:35,088 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,088 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,088 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 0
+2020-12-28 14:08:35,088 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 1
+2020-12-28 14:08:35,089 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,089 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 1
+2020-12-28 14:08:35,183 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,183 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,183 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 1
+2020-12-28 14:08:35,184 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 2
+2020-12-28 14:08:35,184 DEBUG   SenderThread:527491 [sender.py:send():88] send: stats
+2020-12-28 14:08:35,185 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,185 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 2
+2020-12-28 14:08:35,185 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,185 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,185 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 2
+2020-12-28 14:08:35,186 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 3
+2020-12-28 14:08:35,186 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,186 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 3
+2020-12-28 14:08:35,187 DEBUG   SenderThread:527491 [sender.py:send():88] send: summary
+2020-12-28 14:08:35,187 INFO    SenderThread:527491 [sender.py:_save_file():542] saving file wandb-summary.json with policy end
+2020-12-28 14:08:35,188 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,188 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,188 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 3
+2020-12-28 14:08:35,188 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 4
+2020-12-28 14:08:35,189 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,189 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 4
+2020-12-28 14:08:35,189 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,189 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,189 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 4
+2020-12-28 14:08:35,189 INFO    SenderThread:527491 [dir_watcher.py:finish():253] shutting down directory watcher
+2020-12-28 14:08:35,302 INFO    Thread-8  :527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/wandb-summary.json
+2020-12-28 14:08:35,303 INFO    SenderThread:527491 [dir_watcher.py:_on_file_modified():201] file/dir modified: wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:35,304 INFO    SenderThread:527491 [dir_watcher.py:finish():282] scan: wandb/run-20201228_140813-srzoraht/files
+2020-12-28 14:08:35,304 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/requirements.txt requirements.txt
+2020-12-28 14:08:35,305 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/output.log output.log
+2020-12-28 14:08:35,310 DEBUG   Thread-13 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:35,310 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/wandb-summary.json wandb-summary.json
+2020-12-28 14:08:35,316 DEBUG   Thread-14 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:35,323 DEBUG   Thread-15 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:35,323 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/wandb-metadata.json wandb-metadata.json
+2020-12-28 14:08:35,324 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/config.yaml config.yaml
+2020-12-28 14:08:35,331 DEBUG   Thread-16 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): api.wandb.ai:443
+2020-12-28 14:08:35,332 INFO    SenderThread:527491 [dir_watcher.py:finish():288] scan save: wandb/run-20201228_140813-srzoraht/files/media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json media/graph/g.r.a.p.h._.0_summary_f6cfb0f4.graph.json
+2020-12-28 14:08:35,332 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 5
+2020-12-28 14:08:35,333 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,333 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 5
+2020-12-28 14:08:35,333 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,333 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,334 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 5
+2020-12-28 14:08:35,334 INFO    SenderThread:527491 [file_pusher.py:finish():169] shutting down file pusher
+2020-12-28 14:08:35,334 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 6
+2020-12-28 14:08:35,335 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,335 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 6
+2020-12-28 14:08:35,335 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,336 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,336 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 6
+2020-12-28 14:08:35,416 DEBUG   Thread-13 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:35,417 DEBUG   Thread-14 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:35,424 DEBUG   Thread-16 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:35,427 DEBUG   Thread-13 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:35,432 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:35,437 DEBUG   Thread-14 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:35,440 DEBUG   Thread-16 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:35,441 DEBUG   Thread-15 :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /graphql HTTP/1.1" 200 None
+2020-12-28 14:08:35,449 DEBUG   Thread-15 :527491 [connectionpool.py:_new_conn():943] Starting new HTTPS connection (1): storage.googleapis.com:443
+2020-12-28 14:08:35,501 DEBUG   Thread-5  :527491 [connectionpool.py:_make_request():442] https://api.wandb.ai:443 "POST /files/aai/temporal_contastive_learning/srzoraht/file_stream HTTP/1.1" 200 None
+2020-12-28 14:08:35,504 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 7
+2020-12-28 14:08:35,505 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,505 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 7
+2020-12-28 14:08:35,505 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,505 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,505 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 7
+2020-12-28 14:08:35,506 INFO    SenderThread:527491 [sender.py:send_request_defer():209] send defer: 8
+2020-12-28 14:08:35,507 DEBUG   SenderThread:527491 [sender.py:send():88] send: final
+2020-12-28 14:08:35,507 DEBUG   SenderThread:527491 [sender.py:send():88] send: footer
+2020-12-28 14:08:35,508 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: defer
+2020-12-28 14:08:35,508 INFO    HandlerThread:527491 [handler.py:handle_request_defer():68] handle defer: 8
+2020-12-28 14:08:35,508 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:35,508 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: defer
+2020-12-28 14:08:35,509 INFO    SenderThread:527491 [sender.py:send_request_defer():173] handle sender defer: 8
+2020-12-28 14:08:35,671 DEBUG   Thread-13 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/requirements.txt?Expires=1609279715&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=MdnOiGNg3WBvxQZp20B3AwMwyV5FM2RMSL%2Bqk8TFLA9OT%2BLqxiNvBwFgS0ftvwX7eGUqoTJ7GTIsYP3M%2B%2BfS8K%2B3WXzNa6wf95TNuGZGV7V7bnLrEZQ6cTU19th4lGmoc6vZowdhT%2BILlzyGy1AgZMoTHQ2vpx54ZqtjDBx9ABzQwhNUzxoDYlxAFqpnfhhaoyAiaF87rJGatCK1YAryn1fn%2FeEkL8hbvzZj%2BMc%2BtbR66e%2FuAjUhM%2F63ojDj3ykiFIPO07LrGPk3Tdx4PeaY%2F4az9IZeTTW9UL8jLtcX3u18cdTHRFmlwsHe7JQBw%2F3DXiPdAsV1kv9Pn2VLuBOoUQ%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:35,673 INFO    Thread-13 :527491 [upload_job.py:push():112] Uploaded file wandb/run-20201228_140813-srzoraht/files/requirements.txt
+2020-12-28 14:08:35,682 DEBUG   Thread-14 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/output.log?Expires=1609279715&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=JhJKd%2FaPA7rGOLdIzYu4wRKkIheZvoYWhfIhv%2FUaGI7NEf%2FEXk1rpT6Gmj1OKzT%2FeWkwsr4CmqxnjCzUOHmkPERJsQeGOC%2BwFfVJr0R%2F99e7EgpWuFVpaA%2B6jBFqpQSVpLugv5iSEcjdKzOc2mfgL%2BEdbZsvMd81By%2BkudNXIeyfH3F6mGwprwDp2%2FJuoGFr4vDJ%2FVc2iJ4pS%2FQ2fBhuTd4NRs1mW6zMu5FORgJn2sXbPJAn2a9ha8tXjh3wv8gvNtgd6naSUD4E6VtYQ%2BTsTgXoWFkBcwaEvBLNNgbAqwVHr3af%2BcIxwzNiAwUz6VeMfmOuOHxmA%2BNwZEQnO696jA%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:35,684 INFO    Thread-14 :527491 [upload_job.py:push():112] Uploaded file wandb/run-20201228_140813-srzoraht/files/output.log
+2020-12-28 14:08:35,731 DEBUG   Thread-15 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/wandb-summary.json?Expires=1609279715&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=UCloSZhcABDv%2B%2B6XVT2VojRsk8VWBmZHPsziKYvjuYxHkXl6BeinBlyjvz%2BpvPAutuYUk0juJVCnngPsPZ3xldawm%2B%2FhRE6uH8Z5ATe59oUraKDqKHKa7%2Bm6ZZDC1Kskximb1GWbRs%2FwiBR%2BMivOaUA39Vg49Lb92DF97eVDg69l7aSYJndk2eRaf5xjYjaZ5jK3PS5718AoGHK%2FLKEeChdZh4x0PFzKXjfhbOj2rt1T5TMW0CCxaGWHODKSiyI00Iam5gP8Kqg%2FN8B60gh5WbuusSXcSjmRb2FiLS62adyaYtn%2BxfcUS37%2BASNLlcUrVj1RDy7smCKiNEr7avezQA%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:35,733 INFO    Thread-15 :527491 [upload_job.py:push():112] Uploaded file wandb/run-20201228_140813-srzoraht/files/wandb-summary.json
+2020-12-28 14:08:35,749 DEBUG   Thread-16 :527491 [connectionpool.py:_make_request():442] https://storage.googleapis.com:443 "PUT /wandb-production.appspot.com/aai/temporal_contastive_learning/srzoraht/config.yaml?Expires=1609279715&GoogleAccessId=wandb-production%40appspot.gserviceaccount.com&Signature=Cyf05dua3aLl30BPgRf0WOiZbcfwvvo7d6TqcPeCqnyEc0sytIHWqqYzTZhQ0HDV82ks8xB0PpgD%2FR%2FXBPALKuyQ%2BkuFf7bE%2FO1EDDjprE9qZ2jNepOdIpUQKqphCGIXrtgxmobRPFlZPymzwZNXSnh779vcGj%2B4Ig2dowQ2IZxQpS7iDHXOeUXHC7YcCAY91ANJIeE7LUQCyEZChfH6MgWHgLZIh1mH67WY2tWU%2B%2BKF1XupN4AOx%2B39IThJyDeBhBNgTZK97VHPmxHMqV8qvj2YwItM03i4Y2tLqOgvqZM3wTFCpWZE3sIPJ1fNQRpMPfgaq9pKnei8PMYl3uIRIg%3D%3D HTTP/1.1" 200 0
+2020-12-28 14:08:35,751 INFO    Thread-16 :527491 [upload_job.py:push():112] Uploaded file wandb/run-20201228_140813-srzoraht/files/config.yaml
+2020-12-28 14:08:37,092 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: poll_exit
+2020-12-28 14:08:37,092 DEBUG   SenderThread:527491 [sender.py:send():88] send: request
+2020-12-28 14:08:37,093 DEBUG   SenderThread:527491 [sender.py:send_request():97] send_request: poll_exit
+2020-12-28 14:08:37,093 INFO    SenderThread:527491 [file_pusher.py:join():174] waiting for file pusher
+2020-12-28 14:08:37,096 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: get_summary
+2020-12-28 14:08:37,098 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: sampled_history
+2020-12-28 14:08:37,099 DEBUG   HandlerThread:527491 [handler.py:handle_request():54] handle_request: shutdown
+2020-12-28 14:08:37,099 INFO    HandlerThread:527491 [handler.py:finish():267] shutting down handler
+2020-12-28 14:08:37,508 INFO    WriterThread:527491 [datastore.py:close():257] close: wandb/run-20201228_140813-srzoraht/run-srzoraht.wandb
+2020-12-28 14:08:38,094 INFO    SenderThread:527491 [sender.py:finish():583] shutting down sender
+2020-12-28 14:08:38,094 INFO    SenderThread:527491 [file_pusher.py:finish():169] shutting down file pusher
+2020-12-28 14:08:38,094 INFO    SenderThread:527491 [file_pusher.py:join():174] waiting for file pusher
+2020-12-28 14:08:38,096 INFO    MainThread:527491 [internal.py:handle_exit():137] Internal process exited

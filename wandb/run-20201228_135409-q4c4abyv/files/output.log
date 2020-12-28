@@ -1,0 +1,92 @@
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torchaudio/backend/utils.py:54: UserWarning: "sox" backend is being deprecated. The default backend will be changed to "sox_io" backend in 0.8.0 and "sox" backend will be removed in 0.9.0. Please migrate to "sox_io" backend. Please refer to https://github.com/pytorch/audio/issues/903 for the detail.
+  '"sox" backend is being deprecated. '
+LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1]
+initializing ddp: GLOBAL_RANK: 1, MEMBER: 2/2
+initializing ddp: GLOBAL_RANK: 0, MEMBER: 1/2
+
+  | Name          | Type             | Params
+---------------------------------------------------
+0 | _cnn1         | Conv2d           | 30    
+1 | _efficientnet | EfficientNet     | 5 M   
+2 | _fc1          | Linear           | 655 K 
+3 | _fc2          | Linear           | 12 K  
+4 | _layer_norm1  | LayerNorm        | 1 K   
+5 | _layer_norm2  | LayerNorm        | 48    
+6 | _dropout      | Dropout          | 0     
+7 | _softmax      | Softmax          | 0     
+8 | _loss         | CrossEntropyLoss | 0     
+Validation sanity check: 0it [00:00, ?it/s](2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+Validation sanity check:  50%|█████     | 1/2 [00:23<00:23, 23.79s/it]Validation sanity check: 100%|██████████| 2/2 [00:24<00:00, 16.75s/it]Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7f550f1fbcb0>
+Traceback (most recent call last):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1203, in __del__
+    self._shutdown_workers()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1177, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/process.py", line 140, in join
+    res = self._popen.wait(timeout)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/popen_fork.py", line 45, in wait
+    if not wait([self.sentinel], timeout):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/connection.py", line 921, in wait
+    ready = selector.select(timeout)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+KeyboardInterrupt: 
+                                                                      Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7f98f2ccecb0>
+Traceback (most recent call last):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1203, in __del__
+    self._shutdown_workers()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1177, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/process.py", line 140, in join
+    res = self._popen.wait(timeout)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/popen_fork.py", line 45, in wait
+    if not wait([self.sentinel], timeout):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/multiprocessing/connection.py", line 921, in wait
+    ready = selector.select(timeout)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+KeyboardInterrupt: 
+Training: 0it [00:00, ?it/s]Training:   0%|          | 0/2078 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/2078 [00:00<?, ?it/s] (2, 128)
+Epoch 0:   0%|          | 0/2078 [00:15<?, ?it/s]
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)
+(2, 128)

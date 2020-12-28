@@ -1,0 +1,15 @@
+2020-12-28 13:48:48,147 INFO    MainThread:524991 [wandb_init.py:_log_setup():291] Logging user logs to wandb/run-20201228_134848-9u3a3zw1/logs/debug.log
+2020-12-28 13:48:48,148 INFO    MainThread:524991 [wandb_init.py:_log_setup():292] Logging internal logs to wandb/run-20201228_134848-9u3a3zw1/logs/debug-internal.log
+2020-12-28 13:48:48,148 INFO    MainThread:524991 [wandb_setup.py:_flush():68] setting env: {}
+2020-12-28 13:48:48,148 INFO    MainThread:524991 [wandb_setup.py:_flush():68] setting user settings: {}
+2020-12-28 13:48:48,148 INFO    MainThread:524991 [wandb_setup.py:_flush():68] multiprocessing start_methods=fork,spawn,forkserver
+2020-12-28 13:48:48,996 INFO    MainThread:524991 [wandb_run.py:_console_start():1189] atexit reg
+2020-12-28 13:48:48,999 INFO    MainThread:524991 [wandb_run.py:_redirect():1061] redirect: SettingsConsole.REDIRECT
+2020-12-28 13:48:49,000 INFO    MainThread:524991 [wandb_run.py:_redirect():1064] Redirecting console.
+2020-12-28 13:48:49,000 INFO    MainThread:524991 [redirect.py:install():187] install start
+2020-12-28 13:48:49,001 INFO    MainThread:524991 [redirect.py:install():202] install stop
+2020-12-28 13:48:49,001 INFO    MainThread:524991 [redirect.py:install():187] install start
+2020-12-28 13:48:49,001 INFO    MainThread:524991 [redirect.py:install():202] install stop
+2020-12-28 13:48:49,002 INFO    MainThread:524991 [wandb_run.py:_redirect():1108] Redirects installed.
+2020-12-28 13:48:49,002 INFO    MainThread:524991 [wandb_watch.py:watch():32] Watching
+2020-12-28 13:48:54,109 INFO    MainThread:524991 [wandb_run.py:_config_callback():542] config_cb None None {'_wandb': {'cli_version': '0.10.4', 'python_version': '3.7.9', 'is_jupyter_run': False, 'is_kaggle_kernel': False, 'framework': 'torch'}}

@@ -1,0 +1,76 @@
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torchaudio/backend/utils.py:54: UserWarning: "sox" backend is being deprecated. The default backend will be changed to "sox_io" backend in 0.8.0 and "sox" backend will be removed in 0.9.0. Please migrate to "sox_io" backend. Please refer to https://github.com/pytorch/audio/issues/903 for the detail.
+  '"sox" backend is being deprecated. '
+LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1]
+initializing ddp: GLOBAL_RANK: 1, MEMBER: 2/2
+initializing ddp: GLOBAL_RANK: 0, MEMBER: 1/2
+
+  | Name          | Type             | Params
+---------------------------------------------------
+0 | _cnn1         | Conv2d           | 30    
+1 | _efficientnet | EfficientNet     | 5 M   
+2 | _fc1          | Linear           | 655 K 
+3 | _fc2          | Linear           | 12 K  
+4 | _layer_norm1  | LayerNorm        | 1 K   
+5 | _layer_norm2  | LayerNorm        | 48    
+6 | _dropout      | Dropout          | 0     
+7 | _softmax      | Softmax          | 0     
+8 | _loss         | CrossEntropyLoss | 0     
+Validation sanity check: 0it [00:00, ?it/s]torch.Size([113, 1000])
+torch.Size([124])
+(128,)
+(128,)
+torch.Size([113, 1000])
+torch.Size([125])
+torch.Size([113, 1000])
+torch.Size([124])
+torch.Size([113, 1000])
+torch.Size([125])
+torch.Size([113, 1000])
+torch.Size([125])
+torch.Size([113, 1000])
+torch.Size([125])
+torch.Size([113, 1000])
+torch.Size([127])
+torch.Size([113, 1000])
+torch.Size([127])
+torch.Size([113, 1000])
+torch.Size([124])
+torch.Size([113, 1000])
+torch.Size([127])
+torch.Size([113, 1000])
+torch.Size([124])
+Traceback (most recent call last):
+  File "/home/sgurram/Projects/temporal_contrastive_learning/train.py", line 30, in <module>
+    trainer.fit(model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 444, in fit
+    results = self.accelerator_backend.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 148, in train
+    results = self.ddp_train(process_idx=self.task_idx, model=model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 282, in ddp_train
+    results = self.train_or_test()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/accelerator.py", line 74, in train_or_test
+    results = self.trainer.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 466, in train
+    self.run_sanity_check(self.get_model())
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 658, in run_sanity_check
+    _, eval_results = self.run_evaluation(test_mode=False, max_batches=self.num_sanity_val_batches)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 578, in run_evaluation
+    output = self.evaluation_loop.evaluation_step(test_mode, batch, batch_idx, dataloader_idx)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/evaluation_loop.py", line 171, in evaluation_step
+    output = self.trainer.accelerator_backend.validation_step(args)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 162, in validation_step
+    output = self.training_step(args)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 158, in training_step
+    output = self.trainer.model(*args)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/overrides/data_parallel.py", line 182, in forward
+    output = self.module.validation_step(*inputs[0], **kwargs[0])
+  File "/home/sgurram/Projects/temporal_contrastive_learning/encoder.py", line 91, in validation_step
+    logits = self.forward(sample)
+  File "/home/sgurram/Projects/temporal_contrastive_learning/encoder.py", line 67, in forward
+    x = input_audio.unsqueeze(1)
+AttributeError: 'numpy.ndarray' object has no attribute 'unsqueeze'

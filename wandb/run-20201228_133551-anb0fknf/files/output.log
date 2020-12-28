@@ -1,0 +1,102 @@
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torchaudio/backend/utils.py:54: UserWarning: "sox" backend is being deprecated. The default backend will be changed to "sox_io" backend in 0.8.0 and "sox" backend will be removed in 0.9.0. Please migrate to "sox_io" backend. Please refer to https://github.com/pytorch/audio/issues/903 for the detail.
+  '"sox" backend is being deprecated. '
+LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1]
+initializing ddp: GLOBAL_RANK: 1, MEMBER: 2/2
+initializing ddp: GLOBAL_RANK: 0, MEMBER: 1/2
+
+  | Name          | Type             | Params
+---------------------------------------------------
+0 | _cnn1         | Conv2d           | 30    
+1 | _efficientnet | EfficientNet     | 5 M   
+2 | _fc1          | Linear           | 655 K 
+3 | _fc2          | Linear           | 12 K  
+4 | _layer_norm1  | LayerNorm        | 1 K   
+5 | _layer_norm2  | LayerNorm        | 48    
+6 | _dropout      | Dropout          | 0     
+7 | _softmax      | Softmax          | 0     
+8 | _loss         | CrossEntropyLoss | 0     
+Validation sanity check: 0it [00:00, ?it/s]Traceback (most recent call last):
+  File "/home/sgurram/Projects/temporal_contrastive_learning/train.py", line 30, in <module>
+    trainer.fit(model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 444, in fit
+    results = self.accelerator_backend.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 148, in train
+    results = self.ddp_train(process_idx=self.task_idx, model=model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 282, in ddp_train
+    results = self.train_or_test()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/accelerator.py", line 74, in train_or_test
+    results = self.trainer.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 466, in train
+    self.run_sanity_check(self.get_model())
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 658, in run_sanity_check
+    _, eval_results = self.run_evaluation(test_mode=False, max_batches=self.num_sanity_val_batches)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 566, in run_evaluation
+    for batch_idx, batch in enumerate(dataloader):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 435, in __next__
+    data = self._next_data()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1085, in _next_data
+    return self._process_data(data)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1111, in _process_data
+    data.reraise()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/_utils.py", line 428, in reraise
+    raise self.exc_type(msg)
+TypeError: Caught TypeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/_utils/worker.py", line 198, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 47, in fetch
+    return self.collate_fn(data)
+  File "/home/sgurram/Projects/temporal_contrastive_learning/encoder.py", line 139, in collate_fn
+TypeError: new() received an invalid combination of arguments - got (list, dtype=torch.dtype), but expected one of:
+ * (*, torch.device device)
+      didn't match because some of the keywords were incorrect: dtype
+ * (torch.Storage storage)
+ * (Tensor other)
+ * (tuple of ints size, *, torch.device device)
+ * (object data, *, torch.device device)
+
+
+Traceback (most recent call last):
+  File "/home/sgurram/Projects/temporal_contrastive_learning/train.py", line 30, in <module>
+    trainer.fit(model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 444, in fit
+    results = self.accelerator_backend.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 148, in train
+    results = self.ddp_train(process_idx=self.task_idx, model=model)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/ddp_accelerator.py", line 282, in ddp_train
+    results = self.train_or_test()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/accelerators/accelerator.py", line 74, in train_or_test
+    results = self.trainer.train()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 466, in train
+    self.run_sanity_check(self.get_model())
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 658, in run_sanity_check
+    _, eval_results = self.run_evaluation(test_mode=False, max_batches=self.num_sanity_val_batches)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/pytorch_lightning/trainer/trainer.py", line 566, in run_evaluation
+    for batch_idx, batch in enumerate(dataloader):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 435, in __next__
+    data = self._next_data()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1085, in _next_data
+    return self._process_data(data)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1111, in _process_data
+    data.reraise()
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/_utils.py", line 428, in reraise
+    raise self.exc_type(msg)
+TypeError: Caught TypeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/_utils/worker.py", line 198, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/home/sgurram/anaconda3/envs/torch_env/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 47, in fetch
+    return self.collate_fn(data)
+  File "/home/sgurram/Projects/temporal_contrastive_learning/encoder.py", line 139, in collate_fn
+TypeError: new() received an invalid combination of arguments - got (list, dtype=torch.dtype), but expected one of:
+ * (*, torch.device device)
+      didn't match because some of the keywords were incorrect: dtype
+ * (torch.Storage storage)
+ * (Tensor other)
+ * (tuple of ints size, *, torch.device device)
+ * (object data, *, torch.device device)
+
+

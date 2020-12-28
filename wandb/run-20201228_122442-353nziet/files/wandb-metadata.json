@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.4.0-56-generic-x86_64-with-debian-bullseye-sid",
+    "python": "3.7.9",
+    "heartbeatAt": "2020-12-28T20:24:43.290519",
+    "startedAt": "2020-12-28T20:24:42.571514",
+    "docker": null,
+    "gpu": "GeForce GTX 1080 Ti",
+    "gpu_count": 2,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "codePath": "train.py",
+    "program": "/home/sgurram/Projects/temporal_contrastive_learning/train.py",
+    "git": {
+        "remote": "https://github.com/sumanthgenz/temporal_contrastive_learning.git",
+        "commit": "bfb9ed6491c6f220f5970c654daae12c2154179f"
+    },
+    "email": "sumanthgenz@gmail.com",
+    "root": "/home/sgurram/Projects/temporal_contrastive_learning",
+    "host": "greybeard",
+    "username": "sgurram",
+    "executable": "/home/sgurram/anaconda3/envs/torch_env/bin/python"
+}
