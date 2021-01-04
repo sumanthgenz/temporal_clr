@@ -98,7 +98,8 @@ def get_temporal_permutes(path):
     
 def get_temporal_shuffle(path):
     #assume num_segments = 4
-    shuffle_idx = random.randint(0, 23)
+    # shuffle_idx = random.randint(0, 23)
+    shuffle_idx = random.randint(0, 5)
     anchor, permutes = get_temporal_permutes(path)
     # return permutes[shuffle_idx], shuffle_idx
     return permutes[shuffle_idx], shuffle_idx
