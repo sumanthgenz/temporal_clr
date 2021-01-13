@@ -112,30 +112,73 @@ class TemporalPermutesDataset(Dataset):
         except:
             return None, None
 
+class TemporalSupervised(Dataset):
+
+    def __init__(self, data_type):
+        self.dataType = data_type
+        self.dir = "/{}/kinetics_audio/{}".format(data, data_type)
+        self.wav_paths = self.get_all_files()
+        
+    def get_all_files(self):
+        wav_paths = []
+        for path in glob.glob(f'{self.dir}/**/*.wav'):
+            wav_paths.append(path)
+        return wav_paths
+
+    def get_pickle(self, classPath):
+        with open('Desktop/kinetics_{}.pickle'.format(classPath), 'rb') as handle:
+            result = pickle.load(handle)
+        return result
+    
+    def __len__(self):
+        return len(self.wav_paths)
+
+    def getNumClasses(self):
+        return self.num_classes
+
+    def __getitem__(self, idx):
+        try:
+            filePath = self.wav_paths[idx]
+            spec, label = get_supervised_data(filePath)
+
+            return spec.numpy(), label
+        except:
+            return None, None
+
+
+
 if __name__ == '__main__':
     
 
-    temporal_shuffle_data = TemporalShuffleData("train")
-    before = 0
-    after = 0
-    skipped = 0
-    for i in tqdm(range(500, 1000)):
-        encoder = TemporalOrderPrediction(num_classes=24)
+    # temporal_shuffle_data = TemporalShuffleData("train")
+    # before = 0
+    # after = 0
+    # skipped = 0
+    # for i in tqdm(range(500, 1000)):
+    #     encoder = TemporalOrderPrediction(num_classes=24)
 
-        shuffle, label = temporal_shuffle_data.__getitem__(i)
+    #     shuffle, label = temporal_shuffle_data.__getitem__(i)
     
-        try:
-            shuffle = torch.from_numpy(shuffle).type(torch.FloatTensor)
-            if torch.mean(shuffle) == 0:
-                before += 1
-            shuffle = encoder((shuffle).unsqueeze(0))
-            if torch.isnan(shuffle).any():
-                after +=1 
-        except:
-            skipped +=1
-    print(before)
-    print(after)
-    print(skipped)
+    #     try:
+    #         shuffle = torch.from_numpy(shuffle).type(torch.FloatTensor)
+    #         if torch.mean(shuffle) == 0:
+    #             before += 1
+    #         shuffle = encoder((shuffle).unsqueeze(0))
+    #         if torch.isnan(shuffle).any():
+    #             after +=1 
+    #     except:
+    #         skipped +=1
+    # print(before)
+    # print(after)
+    # print(skipped)
+
+    model = TemporalOrderPrediction()
+    modules = list(model.children())[:]
+    for m in modules:
+        print(m)
+    # print(modules)
+
+
         # a = [np.array([1,2,3]), np.array([4,5,6])]
         # # a = [torch.Tensor([1,2,3]), torch.Tensor(4,5,6)]
         # b = torch.Tensor(a)

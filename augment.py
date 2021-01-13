@@ -42,6 +42,13 @@ def get_log_mel_spec(wave, samp_freq=16000):
     return spec.log2()[0,:,:]
 
 
+def pad_spec(spec, pad_len=1000):
+    to_pad = pad_len - spec.shape[-1] 
+    if to_pad > 0:
+        return torch.nn.functional.pad(spec, (0,to_pad,0,0))
+    return spec[:,:pad_len]
+
+
 def augment(sample, wave_transform, spec_transform, threshold, fixed_crop=True):
     wave = wave_transform(threshold)(sample)
     wave = wave.type(torch.FloatTensor)
@@ -64,25 +71,27 @@ def augment(sample, wave_transform, spec_transform, threshold, fixed_crop=True):
     spec[torch.isinf(spec)] = 0
     return spec
 
-def get_augmented_views(path):
+def get_augmented_views(path, identity=False):
     sample, _ = get_wave(path)
-
-    wave1 =  random.choice(list(wave_transforms.values()))
-    spec1 =  random.choice(list(spec_transforms.values()))
     threshold1 = random.uniform(0.0, 0.5)
-
-    wave2 =  random.choice(list(wave_transforms.values()))
-    spec2 =  random.choice(list(spec_transforms.values()))
     threshold2 = random.uniform(0.0, 0.5)
 
-    # wave1 = WaveIdentity
-    # wave2 = WaveIdentity
+    if not identity:
+        wave1 =  random.choice(list(wave_transforms.values()))
+        spec1 =  random.choice(list(spec_transforms.values()))
 
-    # spec1 = SpecShuffle
-    # spec2 = SpecCheckerNoise
+        wave2 =  random.choice(list(wave_transforms.values()))
+        spec2 =  random.choice(list(spec_transforms.values()))
+        
+    else:
+        wave1 = WaveIdentity
+        wave2 = WaveIdentity
 
-    print(wave1, spec1)
-    print(wave2, spec2)
+        spec1 = SpecIdentity
+        spec2 = SpecIdentity
+
+    # print(wave1, spec1)
+    # print(wave2, spec2)
 
     return augment(sample, wave1, spec1, threshold1), augment(sample, wave2, spec2, threshold2), (wave1, spec1), (wave2, spec2)
 
@@ -103,6 +112,11 @@ def get_temporal_shuffle(path):
     anchor, permutes = get_temporal_permutes(path)
     # return permutes[shuffle_idx], shuffle_idx
     return permutes[shuffle_idx], shuffle_idx
+
+def get_supervised_data(path):
+    spec = pad_spec(get_augmented_views(path, identity=True)[0])
+    label = int((path.split('/')[4]).split('_')[0]) - 1
+    return spec, label
 
 
 if __name__ == '__main__':

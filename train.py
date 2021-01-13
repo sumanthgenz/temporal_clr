@@ -10,7 +10,7 @@ from pytorch_lightning.loggers import WandbLogger
 from encoder import *
 
 modes = ["order_prediction", "contrastive", "linear"]
-mode = modes[0]
+mode = modes[2]
 
 if __name__ == "__main__":
 
@@ -49,16 +49,15 @@ if __name__ == "__main__":
 
   elif mode == "linear":
 
-      # model = LinearClassifier()
-      # wandb_logger.watch(model, log='gradients', log_freq=10)
+      model = LinearClassifier()
+      wandb_logger.watch(model, log='gradients', log_freq=10)
 
-      # trainer = pl.Trainer(
-      #     default_root_dir='/home/sgurram/Desktop/pcl_linear/infonce', 
-      #     gpus=2, 
-      #     max_epochs=200, 
-      #     logger=wandb_logger,
-      #     accumulate_grad_batches=1, 
-      #     distributed_backend='ddp')  
+      trainer = pl.Trainer(
+          default_root_dir='/home/sgurram/Desktop/temporal_linear_ckpt', 
+          gpus=2, 
+          max_epochs=50, 
+          logger=wandb_logger,
+          accumulate_grad_batches=64, 
+          distributed_backend='ddp')  
 
-      # trainer.fit(model)
-      pass
+      trainer.fit(model)

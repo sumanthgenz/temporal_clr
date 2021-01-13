@@ -167,6 +167,126 @@ class TemporalOrderPrediction(pl.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self._lr)
+
+
+class LinearClassifier(pl.LightningModule):
+
+    def __init__(self):
+        super(LinearClassifier, self).__init__()
+
+        self.num_classes = 700
+        self.fc1 = nn.Linear(1280, self.num_classes)
+        self.lr = 1e-3
+        self.loss = torch.nn.CrossEntropyLoss()
+        self.bsz = 8
+
+        self.path = 'Desktop/temporal_order_ckpt/temporal_contastive_learning/8cusj0o8/checkpoints/epoch=88.ckpt'
+        self.base_model = TemporalOrderPrediction()
+        # modules = list(self.base_model.children())[:]
+        self.model = nn.Sequential(
+                self.base_model._cnn1,
+                self.base_model._efficientnet,
+        )
+        self.model.load_state_dict(torch.load(self.path), strict=False)
+
+    def forward(self, x):
+        x = x.unsqueeze(1)
+        with torch.no_grad():
+            x = self.model(x)
+        x =  x.squeeze(3).squeeze(2)
+        x = self.fc1(x)
+        return x
+
+    def training_step(self, batch, batch_idx):
+        sample, label = batch
+        logits = self.forward(sample)
+        loss = self.loss(logits, label)
+        logs = {'loss': loss}
+        return {'loss': loss, 'log': logs}
+
+    def validation_step(self, batch, batch_idx):
+      sample, label = batch
+      logits = self.forward(sample)
+      loss = self.loss(logits, label)
+
+      top_1_accuracy = compute_accuracy(logits, label, top_k=1)
+      top_5_accuracy = compute_accuracy(logits, label, top_k=5)
+      
+      logs = {
+            'val_loss': loss,
+            'val_top_1': top_1_accuracy,
+            'val_top_5': top_5_accuracy}
+
+      return logs
+
+    def test_step(self, batch, batch_idx):
+      sample, label = batch
+      logits = self.forward(sample)
+      loss = self.loss(logits, label)
+
+      top_1_accuracy = compute_accuracy(logits, label, top_k=1)
+      top_5_accuracy = compute_accuracy(logits, label, top_k=5)
+
+      logs = {
+            'test_loss': loss,
+            'test_top_1': top_1_accuracy,
+            'test_top_5': top_5_accuracy}
+
+      return logs
+
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([m['val_loss'] for m in outputs]).mean()
+        avg_top1 = torch.stack([m['val_top_1'] for m in outputs]).mean()
+        avg_top5 = torch.stack([m['val_top_5'] for m in outputs]).mean()
+
+        logs = {
+        'val_loss': avg_loss,
+        'val_top_1': avg_top1,
+        'val_top_5': avg_top5}
+
+        return {'val_loss': avg_loss, 'log': logs}
+
+    def collate_fn(self, batch):
+
+        batch = np.transpose(batch)
+        # print(batch[0].shape)
+        # print(batch[1].shape)
+
+        data =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
+        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[1]))).long()
+        return data, labels
+
+    def train_dataloader(self):
+        dataset = TemporalSupervised(data_type='train')
+        return torch.utils.data.DataLoader(
+                                dataset,
+                                batch_size=self.bsz,
+                                shuffle=True,
+                                collate_fn=self.collate_fn,
+                                num_workers=8)
+
+    def val_dataloader(self):
+          dataset = TemporalSupervised(data_type='validate')
+          return torch.utils.data.DataLoader(
+                                  dataset,
+                                  batch_size=self.bsz,
+                                  shuffle=True,
+                                  collate_fn=self.collate_fn,
+                                  num_workers=8)
+
+
+    def test_dataloader(self):
+          dataset = TemporalSupervised(data_type='test')
+          return torch.utils.data.DataLoader(
+                                  dataset,
+                                  batch_size=self.bsz,
+                                  shuffle=True,
+                                  collate_fn=self.collate_fn,
+                                  num_workers=8)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
+
     
         #to replicate supcon cross-entropy, use these hparams: https://github.com/google-research/google-research/blob/master/supcon/scripts/cross_entropy_cifar10_resnet50.sh
         # optimizer = torch.optim.SGD(
