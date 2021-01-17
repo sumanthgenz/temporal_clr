@@ -7,10 +7,10 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
-from encoder import *
+from models import *
 
 modes = ["order_prediction", "contrastive", "linear"]
-mode = modes[2]
+mode = modes[1]
 
 if __name__ == "__main__":
 
@@ -32,19 +32,19 @@ if __name__ == "__main__":
 
   elif mode == "contrastive":
 
-    # model = ContrastiveModel()
-    # wandb_logger.watch(model, log='gradients', log_freq=10)
+    model = TemporalContrastive()
+    wandb_logger.watch(model, log='gradients', log_freq=1)
+    # wandb_logger = None
 
-    # trainer = pl.Trainer(
-    #     default_root_dir='/home/sgurram/Desktop/pcl_contrastive/infonce', 
-    #     gpus=2, 
-    #     max_epochs=200, 
-    #     logger=wandb_logger,
-    #     accumulate_grad_batches=4, 
-    #     distributed_backend='ddp')  
+    trainer = pl.Trainer(
+        default_root_dir='/home/sgurram/Desktop/temporal_contrastive_ckpt', 
+        gpus=2, 
+        max_epochs=200, 
+        logger=wandb_logger,
+        accumulate_grad_batches=64, 
+        distributed_backend='ddp')  
 
-    # trainer.fit(model)
-    pass
+    trainer.fit(model)
 
 
   elif mode == "linear":
