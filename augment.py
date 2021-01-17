@@ -103,15 +103,16 @@ def get_temporal_permutes(path):
     threshold = random.uniform(0.0, 0.5)
 
     # Return (anchor, permutes), anchor is single sample, permutes is a list of samples
-    return augment(sample, wave, spec1, threshold, fixed_crop=False), augment(sample, wave, spec2, threshold)
+    return augment(sample, wave, spec2, threshold)
     
 def get_temporal_shuffle(path):
-    #assume num_segments = 4
+    #assume num_segments = 3
     # shuffle_idx = random.randint(0, 23)
-    shuffle_idx = random.randint(0, 5)
-    anchor, permutes = get_temporal_permutes(path)
-    # return permutes[shuffle_idx], shuffle_idx
-    return permutes[shuffle_idx], shuffle_idx
+    shuffle_idx = random.randint(1, 5)
+    permutes = get_temporal_permutes(path)
+
+    #permutes[0] is in-order sample, so anchor
+    return permutes[0], permutes[shuffle_idx], shuffle_idx
 
 def get_supervised_data(path):
     spec = pad_spec(get_augmented_views(path, identity=True)[0])
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     for _ in tqdm(range(1)):
         filepath = "/{dir}/kinetics_audio/train/25_riding a bike/0->--JMdI8PKvsc.wav".format(dir = data)
         # view1, view2, _, _ = get_augmented_views(filepath)
-        shuffle, label = get_temporal_shuffle(filepath)
+        anchor, shuffle, label = get_temporal_shuffle(filepath)
  
     #     view1, view2 = permutes[5], permutes[10]
     

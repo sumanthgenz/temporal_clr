@@ -76,6 +76,38 @@ class TemporalShuffleData(Dataset):
             # return shuffle, label
             return None, None
 
+class TemporalContrastiveData(Dataset):
+
+    def __init__(self, data_type):
+        self.dataType = data_type
+        self.dir = "/{}/kinetics_audio/{}".format(data, data_type)
+        self.wav_paths = self.get_all_files()
+        
+    def get_all_files(self):
+        wav_paths = []
+        for path in glob.glob(f'{self.dir}/**/*.wav'):
+            wav_paths.append(path)
+        return wav_paths
+
+    def get_pickle(self, classPath):
+        with open('Desktop/kinetics_{}.pickle'.format(classPath), 'rb') as handle:
+            result = pickle.load(handle)
+        return result
+    
+    def __len__(self):
+        return len(self.wav_paths)
+
+    def __getitem__(self, idx):
+        try:
+            filePath = self.wav_paths[idx]
+            anchor, spatial = get_augmented_views(filePath)
+            _, temporal, shuffle_label = get_temporal_shuffle(filePath)
+
+            return anchor, spatial, temporal, shuffle_label
+
+        except:
+            return None, None, None, None
+
 class TemporalPermutesDataset(Dataset):
 
     def __init__(self, data_type):

@@ -226,9 +226,9 @@ class SpecPermutes():
         self.threshold = threshold
 
     def __call__(self, spec):
-        segments = np.array(np.split(spec.T.numpy(), 4, axis=0))
+        segments = np.array(np.split(spec.T.numpy(), 3, axis=0))[1:]
         permutes = list(permutations(segments))
-        permutes = [numpy.asarray(seg).flatten().reshape(1000,128).T for seg in permutes]
+        permutes = [numpy.asarray(seg).flatten().reshape(999,128).T for seg in permutes]
         #returns all permutations of segmented spectrogram
 
         return torch.from_numpy(np.array(permutes))
@@ -248,6 +248,4 @@ spec_transforms = {
         'spec_gaussian_noise': SpecGaussianNoise,
         'spec_checker_noise': SpecCheckerNoise,
         'spec_flip': SpecFlip,
-        'spec_time_reverse': SpecTimeReverse,
-        'sepc_shuffle': SpecShuffle
 }
