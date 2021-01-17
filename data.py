@@ -20,7 +20,7 @@ import socket
 
 from augment import *
 from metrics import *
-from encoder import *
+from models import *
 # from torchaudio_transforms import *
 
 torchaudio.set_audio_backend("sox_io") 
@@ -98,15 +98,15 @@ class TemporalContrastiveData(Dataset):
         return len(self.wav_paths)
 
     def __getitem__(self, idx):
-        try:
-            filePath = self.wav_paths[idx]
-            anchor, spatial = get_augmented_views(filePath)
-            _, temporal, shuffle_label = get_temporal_shuffle(filePath)
+        # try:
+        filePath = self.wav_paths[idx]
+        anchor, spatial = get_augmented_views(filePath)
+        _, temporal, shuffle_label = get_temporal_shuffle(filePath)
 
-            return anchor, spatial, temporal, shuffle_label
+        return anchor, spatial, temporal, shuffle_label
 
-        except:
-            return None, None, None, None
+        # except:
+        #     return None, None, None, None
 
 class TemporalPermutesDataset(Dataset):
 
@@ -204,10 +204,29 @@ if __name__ == '__main__':
     # print(after)
     # print(skipped)
 
-    model = TemporalOrderPrediction()
-    modules = list(model.children())[:]
-    for m in modules:
-        print(m)
+    data = TemporalContrastiveData("train")
+    ax, sx, tx, lx = data.__getitem__(0)
+    ay, sy, ty, ly = data.__getitem__(1)
+    a, s, t, l = torch.stack((ax, ay)), torch.stack((sx, sy)), torch.stack((tx, ty)), torch.Tensor([lx, ly])
+    print(a.shape)
+    print(s.shape)
+    print(t.shape)
+    print(l.shape)
+
+    batch = (a, s, t, l)
+
+    model = TemporalContrastive(batch_size=2)
+    output = model(batch)
+    loss = model.loss(output)
+
+
+    for i in list(output.values()):
+        print(i.shape)
+
+    for k in list(loss.values()):
+        print(k)
+    # output = model(data.__getitem__(0))
+
     # print(modules)
 
 

@@ -44,7 +44,7 @@ def vector_couloumb(x, y, pos_pair, k=0.05, q1=1, q2=1):
 def NCELoss(x, y, temp=0.5):
     #sim matrix dims = B * B, and hold pairwise (per sample) dot-product similarity for x, y views
     #pos_pairs dims = N, and specify which indices correspond to positive-pair dot products per sample in x
-    pos_pairs = torch.arange(x.size(0)).cuda()
+    pos_pairs = torch.arange(x.size(0)).to(x.device)
     sim_matrix = torch.mm(x, y.t())/temp
     # print(x.shape)
     # print(y.shape)

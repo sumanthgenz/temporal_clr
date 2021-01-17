@@ -73,20 +73,19 @@ class AudioFeatureModel(torch.nn.Module):
 
     def forward(self, input_audio):
         #Input [N * C * T]
-
-        x = self.audio_conv(input_audio)
+        x = self.audio_conv(input_audio.type(torch.FloatTensor))
         x = torch.einsum('ndt->ntd', [x])
 
         #Output [N * T * D]
         return x
 
 class TemporalContrastive(pl.LightningModule):
-        def __init__(self, 
-                num_permutes=6,
+    def __init__(self, 
+                num_permutes=5,
                 num_types=2,
                 model_dimension=128, 
                 feat_dimension=512,
-                seqlen=150,
+                seqlen=125,
                 batch_size=128, 
                 num_heads=4, 
                 num_layers=4, 
@@ -101,7 +100,7 @@ class TemporalContrastive(pl.LightningModule):
         self._num_permutes = num_permutes
         self._num_types = num_types
         self._model_dimension = model_dimension
-        self._feat_dimension = feat_dimension
+        self._feature_dimension = feat_dimension
         self._seqlen = seqlen
         self._batch_size = batch_size
         self._num_heads = num_heads
@@ -114,7 +113,7 @@ class TemporalContrastive(pl.LightningModule):
 
         self._type_loss = nn.BCELoss()
         self._order_loss = nn.CrossEntropyLoss()
-        self._contrastive_loss = NCELoss()
+        self._contrastive_loss = NCELoss
 
 
         self._audio_feature_model = AudioFeatureModel(
@@ -133,13 +132,14 @@ class TemporalContrastive(pl.LightningModule):
                                                                  dropout=self._dropout,
                                                                  activation='relu')
         self._encoder = torch.nn.modules.TransformerEncoder(encoder_layer=self._encoder_layer,
-
+                                                        num_layers=self._num_layers,)
 
         self._type_mlp = torch.nn.Sequential(
             torch.nn.Linear(self._model_dimension, self._model_dimension),
             torch.nn.BatchNorm1d(self._model_dimension),
             torch.nn.ReLU(),
             torch.nn.Linear(self._model_dimension, self._num_types),
+            torch.nn.Softmax(),
         )
 
         self._order_mlp = torch.nn.Sequential(
@@ -147,6 +147,7 @@ class TemporalContrastive(pl.LightningModule):
             torch.nn.BatchNorm1d(self._model_dimension),
             torch.nn.ReLU(),
             torch.nn.Linear(self._model_dimension, self._num_permutes),
+            torch.nn.Softmax(),
         )
 
         self._contrastive_mlp = torch.nn.Sequential(
@@ -157,35 +158,39 @@ class TemporalContrastive(pl.LightningModule):
         )
 
     def _feature_project(self, x):
-        return self._frame_input_projection(x.reshape(-1, self._feature_dimension)).reshape(
+        return self._input_projection(x.reshape(-1, self._feature_dimension)).reshape(
             x.shape[0], x.shape[1], self._model_dimension)
 
-    def _encode_sequence(self, x):
-        x = _audio_feature_model(x)
-        x = _feature_project(x)
-        encoded = encoder(src=x,).transpose(0, 1)
+    def _encode_sequence(self, x, mlp_name):
+        if mlp_name == 'contrastive':
+            mlp = self._contrastive_mlp
+        elif mlp_name == 'order':
+            mlp = self._order_mlp
+        elif mlp_name == 'type':
+            mlp = self._type_mlp
+        else:
+            pass
+
+        x = self._audio_feature_model(x)
+        x = self._feature_project(x)
+        encoded = self._encoder(src=x,).mean(dim=1)
   
-        #transpose [T * N * D] -> [N * T * D] after mlp
-        encoded = mlp(encoded.reshape(
-            -1, self._model_dimension)).reshape(*encoded.shape).transpose(0,1)
+        #Input [N * D] to mlp
+        encoded = mlp(encoded)
 
         return encoded
-
 
     def forward(self, batch):
         anchor, spatial, temporal, idx_ord = batch
 
-        anchor = self._encode_sequence(anchor)
-        spatial = self._encode_sequence(spatial)
-        temporal = self._encode_sequence(temporal)
+        anchor_clr = self._encode_sequence(anchor, 'contrastive')
+        spatial_clr = self._encode_sequence(spatial, 'contrastive')
+        spatial_type = self._encode_sequence(spatial, 'type')
+        temporal_type = self._encode_sequence(temporal, 'type')
+        temporal_ord = self._encode_sequence(temporal, 'order')
 
-        anchor_clr = self._contrastive_mlp(torch.nn.functional.normalize(anchor, p=2, dim=-1))
-
-        spatial_clr = self._contrastive_mlp(torch.nn.functional.normalize(spatial, p=2, dim=-1))
-        spatial_type = self._type_mlp(spatial)
-
-        temporal_type = self._type_mlp(temporal)
-        temporal_ord = self._order_mlp(temporal)
+        anchor_clr = torch.nn.functional.normalize(anchor_clr, p=2, dim=-1)
+        spatial_clr = torch.nn.functional.normalize(spatial_clr, p=2, dim=-1)
 
         mlp_outputs = {
             'x_clr': anchor_clr,
@@ -200,9 +205,9 @@ class TemporalContrastive(pl.LightningModule):
 
     def loss(self, out):
         #type loss is binary classification, where spatial and temporal are classes {0, 1}
-        type_loss = self._type_loss(out['x_type'], torch.zeros(out['x_type'].shape).cuda())
-        type_loss += self._type_loss(out['y_type'], torch.ones(out['y_type'].shape).cuda())
-        order_loss = self._order_loss(out['x_ord'], out['y_ord'])
+        type_loss = self._type_loss(out['x_type'], torch.zeros(out['x_type'].shape).to(out['x_type'].device))
+        type_loss += self._type_loss(out['y_type'], torch.ones(out['y_type'].shape).to(out['y_type'].device))
+        order_loss = self._order_loss(out['x_ord'], out['y_ord'].long())
         contrastive_loss = self._contrastive_loss(out['x_clr'], out['y_clr'])
 
         total_loss = torch.zeros([]).cuda()
@@ -210,11 +215,11 @@ class TemporalContrastive(pl.LightningModule):
         total_loss += self._order_loss_weight * order_loss
         total_loss += self._contrastive_loss_weight * contrastive_loss
 
-        type_acc = compute_accuracy(out['x_type'], torch.zeros(out['x_type'].shape).cuda(), top_k=1)
-        type_acc += compute_accuracy(out['y_type'], torch.ones(out['y_type'].shape).cuda(), top_k=1)
+        type_acc = compute_accuracy(out['x_type'], torch.zeros(out['x_type'].shape[0]).to(out['x_type'].device), top_k=1)
+        type_acc += compute_accuracy(out['y_type'], torch.ones(out['y_type'].shape[0]).to(out['y_type'].device), top_k=1)
         type_acc *= 0.5
 
-        order_acc = self.compute_accuracy(out['x_ord'], out['y_ord'], top_k=1)
+        order_acc = compute_accuracy(out['x_ord'], out['y_ord'], top_k=1)
 
         metrics = {
             'type_loss': type_loss,
@@ -246,7 +251,7 @@ class TemporalContrastive(pl.LightningModule):
             'val_order_acc': metrics['order_acc'],
         }
 
-      return logs
+        return logs
 
     def test_step(self, batch, batch_idx):
         outputs = self.forward(batch)
@@ -260,7 +265,7 @@ class TemporalContrastive(pl.LightningModule):
             'test_order_acc': metrics['order_acc'],
         }
 
-      return logs
+        return logs
 
     def validation_epoch_end(self, outputs):
         type_loss = torch.stack([m['type_loss'] for m in outputs]).mean()
@@ -287,8 +292,8 @@ class TemporalContrastive(pl.LightningModule):
         anchor =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
         spatial =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
         temporal =  torch.Tensor(list(filter(lambda x: x is not None, batch[2])))
-        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3]))).long()
-        return anchor, spatial, temporal labels
+        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3])))
+        return anchor, spatial, temporal, labels
 
     def train_dataloader(self):
         dataset = TemporalContrastiveData(data_type='train')
@@ -326,7 +331,7 @@ class TemporalContrastive(pl.LightningModule):
 #Implementation from
 # https://github.com/CVxTz/COLA_pytorch/blob/master/audio_encoder/encoder.py
 class TemporalOrderPrediction(pl.LightningModule):
-    def __init__(self, dropout=0.1, model_dimension=512, num_classes=25):
+    def __init__(self, dropout=0.1, model_dimension=512, num_classes=5):
         super(TemporalOrderPrediction, self).__init__()
 
         self._num_classes = num_classes
