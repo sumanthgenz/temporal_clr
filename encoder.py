@@ -25,6 +25,304 @@ from data import *
 
 wandb_logger = WandbLogger(name='shuffle_prediction',project='temporal_contastive_learning')
 
+class AudioFeatureModel(torch.nn.Module):
+    def __init__(self, 
+                dropout=0.1, 
+                model_dimension=512):
+
+        super(AudioFeatureModel, self).__init__()
+
+        self.mel_freq = 128
+        self.model_dimension = 512
+        self.time_stpes = 300
+
+        #audio convnet 
+        self.conv1 = torch.nn.Conv1d(
+                    in_channels=self.mel_freq, 
+                    out_channels=self.model_dimension, 
+                    kernel_size=2, 
+                    stride=2,
+        )
+
+        self.conv2 = torch.nn.Conv1d(
+                    in_channels=self.model_dimension, 
+                    out_channels=self.model_dimension, 
+                    kernel_size=2,
+                    stride=2,
+        )
+
+        self.pool1 = nn.MaxPool1d(
+                kernel_size=2,
+                stride=2,
+        )
+
+        self.drop = nn.Dropout(p=0.1)
+        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
+        self.bn = nn.BatchNorm1d(num_features=self.model_dimension)
+        self.ln = nn.LayerNorm(normalized_shape=(self.model_dimension, self.time_stpes))
+
+        self.audio_conv = nn.Sequential(
+                self.conv1,
+                self.conv2,
+                self.bn,
+                self.relu,
+                self.pool1,
+                self.drop,
+        )
+
+    def forward(self, input_audio):
+        #Input [N * C * T]
+
+        x = self.audio_conv(input_audio)
+        x = torch.einsum('ndt->ntd', [x])
+
+        #Output [N * T * D]
+        return x
+
+class TemporalContrastive(pl.LightningModule):
+        def __init__(self, 
+                num_permutes=6,
+                num_types=2,
+                model_dimension=128, 
+                feat_dimension=512,
+                seqlen=150,
+                batch_size=128, 
+                num_heads=4, 
+                num_layers=4, 
+                dropout=0.1,
+                learning_rate=1e-3,
+                type_loss_weight=0.2,
+                order_loss_weight=0.3,
+                contrastive_loss_weight=0.5):
+
+        super(TemporalContrastive, self).__init__()
+
+        self._num_permutes = num_permutes
+        self._num_types = num_types
+        self._model_dimension = model_dimension
+        self._feat_dimension = feat_dimension
+        self._seqlen = seqlen
+        self._batch_size = batch_size
+        self._num_heads = num_heads
+        self._num_layers = num_layers
+        self._dropout = dropout
+        self._learning_rate = learning_rate
+        self._type_loss_weight = type_loss_weight
+        self._order_loss_weight = order_loss_weight
+        self._contrastive_loss_weight = contrastive_loss_weight
+
+        self._type_loss = nn.BCELoss()
+        self._order_loss = nn.CrossEntropyLoss()
+        self._contrastive_loss = NCELoss()
+
+
+        self._audio_feature_model = AudioFeatureModel(
+                                dropout= self._dropout,
+                                model_dimension=self._feature_dimension)
+
+        self._input_projection = torch.nn.Sequential(
+            torch.nn.BatchNorm1d(self._feature_dimension),
+            torch.nn.Linear(self._feature_dimension, self._model_dimension),
+            torch.nn.ReLU(),
+        )
+
+        self._encoder_layer = torch.nn.modules.TransformerEncoderLayer(d_model=self._model_dimension,
+                                                                 nhead=self._num_heads,
+                                                                 dim_feedforward=self._model_dimension,
+                                                                 dropout=self._dropout,
+                                                                 activation='relu')
+        self._encoder = torch.nn.modules.TransformerEncoder(encoder_layer=self._encoder_layer,
+
+
+        self._type_mlp = torch.nn.Sequential(
+            torch.nn.Linear(self._model_dimension, self._model_dimension),
+            torch.nn.BatchNorm1d(self._model_dimension),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self._model_dimension, self._num_types),
+        )
+
+        self._order_mlp = torch.nn.Sequential(
+            torch.nn.Linear(self._model_dimension, self._model_dimension),
+            torch.nn.BatchNorm1d(self._model_dimension),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self._model_dimension, self._num_permutes),
+        )
+
+        self._contrastive_mlp = torch.nn.Sequential(
+            torch.nn.Linear(self._model_dimension, self._model_dimension),
+            torch.nn.BatchNorm1d(self._model_dimension),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self._model_dimension, self._model_dimension),
+        )
+
+    def _feature_project(self, x):
+        return self._frame_input_projection(x.reshape(-1, self._feature_dimension)).reshape(
+            x.shape[0], x.shape[1], self._model_dimension)
+
+    def _encode_sequence(self, x):
+        x = _audio_feature_model(x)
+        x = _feature_project(x)
+        encoded = encoder(src=x,).transpose(0, 1)
+  
+        #transpose [T * N * D] -> [N * T * D] after mlp
+        encoded = mlp(encoded.reshape(
+            -1, self._model_dimension)).reshape(*encoded.shape).transpose(0,1)
+
+        return encoded
+
+
+    def forward(self, batch):
+        anchor, spatial, temporal, idx_ord = batch
+
+        anchor = self._encode_sequence(anchor)
+        spatial = self._encode_sequence(spatial)
+        temporal = self._encode_sequence(temporal)
+
+        anchor_clr = self._contrastive_mlp(torch.nn.functional.normalize(anchor, p=2, dim=-1))
+
+        spatial_clr = self._contrastive_mlp(torch.nn.functional.normalize(spatial, p=2, dim=-1))
+        spatial_type = self._type_mlp(spatial)
+
+        temporal_type = self._type_mlp(temporal)
+        temporal_ord = self._order_mlp(temporal)
+
+        mlp_outputs = {
+            'x_clr': anchor_clr,
+            'y_clr': spatial_clr,
+            'x_type': spatial_type,
+            'y_type': temporal_type,
+            'x_ord': temporal_ord,
+            'y_ord': idx_ord,
+        }
+
+        return mlp_outputs
+
+    def loss(self, out):
+        #type loss is binary classification, where spatial and temporal are classes {0, 1}
+        type_loss = self._type_loss(out['x_type'], torch.zeros(out['x_type'].shape).cuda())
+        type_loss += self._type_loss(out['y_type'], torch.ones(out['y_type'].shape).cuda())
+        order_loss = self._order_loss(out['x_ord'], out['y_ord'])
+        contrastive_loss = self._contrastive_loss(out['x_clr'], out['y_clr'])
+
+        total_loss = torch.zeros([]).cuda()
+        total_loss += self._type_loss_weight * type_loss
+        total_loss += self._order_loss_weight * order_loss
+        total_loss += self._contrastive_loss_weight * contrastive_loss
+
+        type_acc = compute_accuracy(out['x_type'], torch.zeros(out['x_type'].shape).cuda(), top_k=1)
+        type_acc += compute_accuracy(out['y_type'], torch.ones(out['y_type'].shape).cuda(), top_k=1)
+        type_acc *= 0.5
+
+        order_acc = self.compute_accuracy(out['x_ord'], out['y_ord'], top_k=1)
+
+        metrics = {
+            'type_loss': type_loss,
+            'order_loss': order_loss,
+            'contrastive_loss': contrastive_loss,
+            'total_loss': total_loss,
+            'type_acc': type_acc,
+            'order_acc': order_acc
+        }
+
+        return metrics
+
+
+    def training_step(self, batch, batch_idx):
+        outputs = self.forward(batch)
+        metrics = self.loss(outputs)
+        logs = {'loss': metrics['total_loss']}
+        return {'loss': loss, 'log': metrics}
+
+    def validation_step(self, batch, batch_idx):
+        outputs = self.forward(batch)
+        metrics = self.loss(outputs)
+        logs = {
+            'val_type_loss': metrics['type_loss'],
+            'val_order_loss': metrics['order_loss'],
+            'val_contrastive_loss': metrics['contrastive_loss'],
+            'val_total_loss': metrics['total_loss'],
+            'val_type_acc': metrics['type_acc'],
+            'val_order_acc': metrics['order_acc'],
+        }
+
+      return logs
+
+    def test_step(self, batch, batch_idx):
+        outputs = self.forward(batch)
+        metrics = self.loss(outputs)
+        logs = {
+            'test_type_loss': metrics['type_loss'],
+            'test_order_loss': metrics['order_loss'],
+            'test_contrastive_loss': metrics['contrastive_loss'],
+            'test_total_loss': metrics['total_loss'],
+            'test_type_acc': metrics['type_acc'],
+            'test_order_acc': metrics['order_acc'],
+        }
+
+      return logs
+
+    def validation_epoch_end(self, outputs):
+        type_loss = torch.stack([m['type_loss'] for m in outputs]).mean()
+        order_loss = torch.stack([m['order_loss'] for m in outputs]).mean()
+        contrastive_loss = torch.stack([m['contrastive_loss'] for m in outputs]).mean()
+        total_loss = torch.stack([m['total_loss'] for m in outputs]).mean()
+        type_acc = torch.stack([m['type_acc'] for m in outputs]).mean()
+        order_acc = torch.stack([m['order_acc'] for m in outputs]).mean()
+
+        logs = {
+            'val_type_loss': type_loss,
+            'val_order_loss': order_loss,
+            'val_contrastive_loss': contrastive_loss,
+            'val_total_loss': total_loss,
+            'val_type_acc': type_acc,
+            'val_order_acc': order_acc,
+        }
+
+
+        return {'val_loss': avg_loss, 'log': logs}
+
+    def _collate_fn(self, batch):
+        batch = np.transpose(batch)
+        anchor =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
+        spatial =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
+        temporal =  torch.Tensor(list(filter(lambda x: x is not None, batch[2])))
+        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3]))).long()
+        return anchor, spatial, temporal labels
+
+    def train_dataloader(self):
+        dataset = TemporalContrastiveData(data_type='train')
+        return torch.utils.data.DataLoader(
+                                dataset,
+                                batch_size=self._batch_size,
+                                shuffle=True,
+                                collate_fn=self._collate_fn,
+                                num_workers=8)
+
+    def val_dataloader(self):
+          dataset = TemporalContrastiveData(data_type='validate')
+          return torch.utils.data.DataLoader(
+                                  dataset,
+                                  batch_size=self._batch_size,
+                                  shuffle=True,
+                                  collate_fn=self._collate_fn,
+                                  num_workers=8)
+
+    def test_dataloader(self):
+        dataset = TemporalContrastiveData(data_type='test')
+        return torch.utils.data.DataLoader(
+                                dataset,
+                                batch_size=self._batch_size,
+                                collate_fn=self._collate_fn,
+                                shuffle=False,
+                                num_workers=8)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=self._learning_rate)
+
+
+
+
 #Implementation from
 # https://github.com/CVxTz/COLA_pytorch/blob/master/audio_encoder/encoder.py
 class TemporalOrderPrediction(pl.LightningModule):
@@ -169,6 +467,8 @@ class TemporalOrderPrediction(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self._lr)
 
 
+
+
 class LinearClassifier(pl.LightningModule):
 
     def __init__(self):
@@ -178,9 +478,10 @@ class LinearClassifier(pl.LightningModule):
         self.fc1 = nn.Linear(1280, self.num_classes)
         self.lr = 1e-3
         self.loss = torch.nn.CrossEntropyLoss()
-        self.bsz = 8
+        self.batch_size = 8
 
-        self.path = 'Desktop/temporal_order_ckpt/temporal_contastive_learning/8cusj0o8/checkpoints/epoch=88.ckpt'
+        # self.path = 'Desktop/temporal_order_ckpt/temporal_contastive_learning/8cusj0o8/checkpoints/epoch=88.ckpt'
+        self.path = 'Desktop/epoch=88.ckpt'
         self.base_model = TemporalOrderPrediction()
         # modules = list(self.base_model.children())[:]
         self.model = nn.Sequential(
@@ -260,7 +561,7 @@ class LinearClassifier(pl.LightningModule):
         dataset = TemporalSupervised(data_type='train')
         return torch.utils.data.DataLoader(
                                 dataset,
-                                batch_size=self.bsz,
+                                batch_size=self.batch_size,
                                 shuffle=True,
                                 collate_fn=self.collate_fn,
                                 num_workers=8)
@@ -269,7 +570,7 @@ class LinearClassifier(pl.LightningModule):
           dataset = TemporalSupervised(data_type='validate')
           return torch.utils.data.DataLoader(
                                   dataset,
-                                  batch_size=self.bsz,
+                                  batch_size=self.batch_size,
                                   shuffle=True,
                                   collate_fn=self.collate_fn,
                                   num_workers=8)
@@ -279,7 +580,7 @@ class LinearClassifier(pl.LightningModule):
           dataset = TemporalSupervised(data_type='test')
           return torch.utils.data.DataLoader(
                                   dataset,
-                                  batch_size=self.bsz,
+                                  batch_size=self.batch_size,
                                   shuffle=True,
                                   collate_fn=self.collate_fn,
                                   num_workers=8)
