@@ -93,7 +93,7 @@ def get_augmented_views(path, identity=False):
     # print(wave1, spec1)
     # print(wave2, spec2)
 
-    return augment(sample, wave1, spec1, threshold1), augment(sample, wave2, spec2, threshold2), (wave1, spec1), (wave2, spec2)
+    return augment(sample, wave1, spec1, threshold1), augment(sample, wave2, spec2, threshold2)
 
 def get_temporal_permutes(path):
     sample, _ = get_wave(path)
@@ -111,8 +111,8 @@ def get_temporal_shuffle(path):
     shuffle_idx = random.randint(1, 5)
     permutes = get_temporal_permutes(path)
 
-    #permutes[0] is in-order sample, so anchor
-    return permutes[0], permutes[shuffle_idx], shuffle_idx
+    #permutes[0] is in-order sample, so anchor, shuffle_idx-1 to range [1, 5] -> [0, 4]
+    return permutes[0], permutes[shuffle_idx], shuffle_idx-1
 
 def get_supervised_data(path):
     spec = pad_spec(get_augmented_views(path, identity=True)[0])
