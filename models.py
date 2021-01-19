@@ -86,7 +86,7 @@ class TemporalContrastive(pl.LightningModule):
                 model_dimension=128, 
                 feat_dimension=512,
                 seqlen=125,
-                batch_size=128, 
+                batch_size=32, 
                 num_heads=4, 
                 num_layers=4, 
                 dropout=0.1,
@@ -288,11 +288,34 @@ class TemporalContrastive(pl.LightningModule):
         return {'val_loss': avg_loss, 'log': logs}
 
     def _collate_fn(self, batch):
-        batch = np.transpose(batch)
+        # batch = np.transpose(batch)
+        # print(batch[0].shape)
+        # print(batch[0][0].shape)
+        # print(batch[1].shape)
+        # print(batch[1][0].shape)
+        # print(batch[2].shape)
+        # print(batch[2][0].shape)        
+        # print(batch[3].shape)
+
+        # samples =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
+        # labels =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
+        # return samples
+        
+        # anchor =  torch.Tensor(list(filter(lambda x: x is not None, np.reshape(batch[0], (batch[0].shape[0], -1)))))
+        # spatial =  torch.Tensor(list(filter(lambda x: x is not None, np.reshape(batch[1], (batch[1].shape[0], -1)))))
+        # temporal =  torch.Tensor(list(filter(lambda x: x is not None, np.reshape(batch[2], (batch[2].shape[0], -1)))))
+        # labels = torch.Tensor(list(filter(lambda x: x is not None, np.reshape(batch[3], (batch[3].shape[0], -1)))))
+
+        # anchor = torch.reshape(anchor, (-1, batch[0].shape[1], batch[0].shape[2]))
+        # spatial = torch.reshape(spatial, (-1, batch[1].shape[1], batch[1].shape[2]))
+        # temporal = torch.reshape(temporal, (-1, batch[2].shape[1], batch[2].shape[2]))
+        # labels = torch.reshape(labels, (-1, batch[3].shape[1], batch[3].shape[2]))
+
         anchor =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
         spatial =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
         temporal =  torch.Tensor(list(filter(lambda x: x is not None, batch[2])))
         labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3])))
+
         return anchor, spatial, temporal, labels
 
     def train_dataloader(self):

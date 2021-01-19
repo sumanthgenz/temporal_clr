@@ -98,15 +98,15 @@ class TemporalContrastiveData(Dataset):
         return len(self.wav_paths)
 
     def __getitem__(self, idx):
-        # try:
-        filePath = self.wav_paths[idx]
-        anchor, spatial = get_augmented_views(filePath)
-        _, temporal, shuffle_label = get_temporal_shuffle(filePath)
+        try:
+            filePath = self.wav_paths[idx]
+            anchor, spatial = get_augmented_views(filePath)
+            _, temporal, shuffle_label = get_temporal_shuffle(filePath)
 
-        return anchor, spatial, temporal, shuffle_label
+            return anchor, spatial, temporal, shuffle_label
 
-        # except:
-        #     return None, None, None, None
+        except:
+            return None, None, None, None
 
 class TemporalPermutesDataset(Dataset):
 
