@@ -9,6 +9,9 @@ from pytorch_lightning.loggers import WandbLogger
 
 from models import *
 
+wandb_logger = WandbLogger(name='shuffle_prediction',project='temporal_contastive_learning')
+
+
 modes = ["order_prediction", "contrastive", "linear"]
 mode = modes[1]
 
@@ -33,15 +36,15 @@ if __name__ == "__main__":
   elif mode == "contrastive":
 
     model = TemporalContrastive()
-    wandb_logger.watch(model, log='gradients', log_freq=1)
-    # wandb_logger = None
+    # wandb_logger.watch(model, log='gradients', log_freq=10)
+    wandb_logger = None
 
     trainer = pl.Trainer(
         default_root_dir='/home/sgurram/Desktop/temporal_contrastive_ckpt', 
         gpus=2, 
         max_epochs=200, 
         logger=wandb_logger,
-        accumulate_grad_batches=64, 
+        accumulate_grad_batches=4, 
         distributed_backend='ddp')  
 
     trainer.fit(model)

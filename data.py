@@ -103,10 +103,14 @@ class TemporalContrastiveData(Dataset):
             anchor, spatial = get_augmented_views(filePath)
             _, temporal, shuffle_label = get_temporal_shuffle(filePath)
 
-            return anchor, spatial, temporal, shuffle_label
+            return anchor, spatial, temporal, torch.tensor([float(shuffle_label)])
 
         except:
-            return None, None, None, None
+            return torch.ones((128, 1000))/0, torch.ones((128, 1000))/0, torch.ones((128, 999))/0, torch.tensor([float('inf')])
+
+            # return torch.tensor([float('NaN')]), torch.tensor([float('NaN')]), torch.tensor([float('NaN')]), torch.tensor([float('NaN')])
+            # return None, None, None, None
+            # return torch.zeros(2, 128, 1000), torch.zeros(2, 128, 1000), torch.zeros(2, 128, 999), torch.zeros(1)
 
 class TemporalPermutesDataset(Dataset):
 
@@ -225,6 +229,24 @@ if __name__ == '__main__':
 
     for k in list(loss.values()):
         print(k)
+
+    x = torch.rand(2, 128, 1000)
+    y = torch.zeros(2, 128, 1000)
+    print(x/0)
+
+    # batch = torch.stack((x,y))
+    # filtered =  torch.Tensor(list(filter(lambda x: x.sum().item()>0, batch)))
+
+    # filtered = batch[batch.sum().item() != 0]
+
+    x, y = torch.tensor([float('NaN'), 1, 2]),  torch.tensor([float('inf'), float('inf'), float('inf')])
+    test = torch.stack((x,y))
+    filtered = test[~test.isinf()]
+    # filtered = test[test == test]
+
+    print(test)
+    print(filtered)
+
     # output = model(data.__getitem__(0))
 
     # print(modules)

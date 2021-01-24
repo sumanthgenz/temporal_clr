@@ -23,8 +23,6 @@ import os
 from metrics import *
 from data import *
 
-wandb_logger = WandbLogger(name='shuffle_prediction',project='temporal_contastive_learning')
-
 class AudioFeatureModel(torch.nn.Module):
     def __init__(self, 
                 dropout=0.1, 
@@ -73,7 +71,7 @@ class AudioFeatureModel(torch.nn.Module):
 
     def forward(self, input_audio):
         #Input [N * C * T]
-        x = self.audio_conv(input_audio.type(torch.FloatTensor))
+        x = self.audio_conv(input_audio.type(torch.FloatTensor).to(input_audio.device))
         x = torch.einsum('ndt->ntd', [x])
 
         #Output [N * T * D]
@@ -180,8 +178,22 @@ class TemporalContrastive(pl.LightningModule):
 
         return encoded
 
+    def filter_nans(self, batch):
+        anchor, spatial, temporal, labels = batch
+        anchor =  anchor[~anchor.isinf()].reshape(-1, anchor.shape[1], anchor.shape[2])
+        spatial =  spatial[~spatial.isinf()].reshape(-1, spatial.shape[1], spatial.shape[2])
+        temporal =  temporal[~temporal.isinf()].reshape(-1, temporal.shape[1], temporal.shape[2])
+        labels =  labels[~labels.isinf()]
+        return anchor, spatial, temporal, labels
+
     def forward(self, batch):
-        anchor, spatial, temporal, idx_ord = batch
+        anchor, spatial, temporal, idx_ord = self.filter_nans(batch)
+        # anchor, spatial, temporal, idx_ord = batch
+
+        # print(anchor.shape)
+        # print(spatial.shape)
+        # print(temporal.shape)
+        # print(idx_ord.shape)
 
         anchor_clr = self._encode_sequence(anchor, 'contrastive')
         spatial_clr = self._encode_sequence(spatial, 'contrastive')
@@ -236,7 +248,7 @@ class TemporalContrastive(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         outputs = self.forward(batch)
         metrics = self.loss(outputs)
-        logs = {'loss': metrics['total_loss']}
+        loss = metrics['total_loss']
         return {'loss': loss, 'log': metrics}
 
     def validation_step(self, batch, batch_idx):
@@ -268,12 +280,12 @@ class TemporalContrastive(pl.LightningModule):
         return logs
 
     def validation_epoch_end(self, outputs):
-        type_loss = torch.stack([m['type_loss'] for m in outputs]).mean()
-        order_loss = torch.stack([m['order_loss'] for m in outputs]).mean()
-        contrastive_loss = torch.stack([m['contrastive_loss'] for m in outputs]).mean()
-        total_loss = torch.stack([m['total_loss'] for m in outputs]).mean()
-        type_acc = torch.stack([m['type_acc'] for m in outputs]).mean()
-        order_acc = torch.stack([m['order_acc'] for m in outputs]).mean()
+        type_loss = torch.stack([m['val_type_loss'] for m in outputs]).mean()
+        order_loss = torch.stack([m['val_order_loss'] for m in outputs]).mean()
+        contrastive_loss = torch.stack([m['val_contrastive_loss'] for m in outputs]).mean()
+        total_loss = torch.stack([m['val_total_loss'] for m in outputs]).mean()
+        type_acc = torch.stack([m['val_type_acc'] for m in outputs]).mean()
+        order_acc = torch.stack([m['val_order_acc'] for m in outputs]).mean()
 
         logs = {
             'val_type_loss': type_loss,
@@ -285,10 +297,11 @@ class TemporalContrastive(pl.LightningModule):
         }
 
 
-        return {'val_loss': avg_loss, 'log': logs}
+        return {'val_loss': total_loss, 'log': logs}
 
     def _collate_fn(self, batch):
-        # batch = np.transpose(batch)
+        # batch = np.asarray(batch)
+        # print(batch.shape)
         # print(batch[0].shape)
         # print(batch[0][0].shape)
         # print(batch[1].shape)
@@ -311,12 +324,18 @@ class TemporalContrastive(pl.LightningModule):
         # temporal = torch.reshape(temporal, (-1, batch[2].shape[1], batch[2].shape[2]))
         # labels = torch.reshape(labels, (-1, batch[3].shape[1], batch[3].shape[2]))
 
-        anchor =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
-        spatial =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
-        temporal =  torch.Tensor(list(filter(lambda x: x is not None, batch[2])))
-        labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3])))
+        # anchor =  torch.Tensor(list(filter(lambda x: x is not None, batch[0])))
+        # spatial =  torch.Tensor(list(filter(lambda x: x is not None, batch[1])))
+        # temporal =  torch.Tensor(list(filter(lambda x: x is not None, batch[2])))
+        # labels = torch.Tensor(list(filter(lambda x: x is not None, batch[3])))
+
+        anchor =  batch[0][batch[0] == batch[0]]
+        spatial =  batch[1][batch[1] == batch[1]]
+        temporal =  batch[2][batch[2] == batch[2]]
+        labels = batch[3][batch[3] == batch[3]]
 
         return anchor, spatial, temporal, labels
+        # return batch[0], batch[1], batch[2], batch[3]
 
     def train_dataloader(self):
         dataset = TemporalContrastiveData(data_type='train')
@@ -324,8 +343,7 @@ class TemporalContrastive(pl.LightningModule):
                                 dataset,
                                 batch_size=self._batch_size,
                                 shuffle=True,
-                                collate_fn=self._collate_fn,
-                                num_workers=8)
+                                num_workers=8,)
 
     def val_dataloader(self):
           dataset = TemporalContrastiveData(data_type='validate')
@@ -333,17 +351,17 @@ class TemporalContrastive(pl.LightningModule):
                                   dataset,
                                   batch_size=self._batch_size,
                                   shuffle=True,
-                                  collate_fn=self._collate_fn,
-                                  num_workers=8)
+                                  num_workers=8,)
+
 
     def test_dataloader(self):
         dataset = TemporalContrastiveData(data_type='test')
         return torch.utils.data.DataLoader(
                                 dataset,
                                 batch_size=self._batch_size,
-                                collate_fn=self._collate_fn,
                                 shuffle=False,
-                                num_workers=8)
+                                num_workers=8,
+                                collate_fn=self.collate_fn,)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self._learning_rate)
