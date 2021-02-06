@@ -26,12 +26,12 @@ from data import *
 class AudioFeatureModel(torch.nn.Module):
     def __init__(self, 
                 dropout=0.1, 
-                model_dimension=512):
+                model_dimension=128):
 
         super(AudioFeatureModel, self).__init__()
 
         self.mel_freq = 128
-        self.model_dimension = 512
+        self.model_dimension = 128
         self.time_stpes = 300
 
         #audio convnet 
@@ -82,15 +82,15 @@ class TemporalContrastive(pl.LightningModule):
                 num_permutes=5,
                 num_types=2,
                 model_dimension=128, 
-                feat_dimension=512,
-                seqlen=125,
-                batch_size=32, 
+                feat_dimension=128,
+                seqlen=2040,
+                batch_size=128, 
                 num_heads=4, 
                 num_layers=4, 
                 dropout=0.1,
                 learning_rate=1e-3,
-                type_loss_weight=0.2,
-                order_loss_weight=0.3,
+                type_loss_weight=0.05,
+                order_loss_weight=0.45,
                 contrastive_loss_weight=0.5):
 
         super(TemporalContrastive, self).__init__()
@@ -132,6 +132,8 @@ class TemporalContrastive(pl.LightningModule):
         self._encoder = torch.nn.modules.TransformerEncoder(encoder_layer=self._encoder_layer,
                                                         num_layers=self._num_layers,)
 
+        self._temporal_fc = torch.nn.Linear(3*self._model_dimension, self._model_dimension)
+
         self._type_mlp = torch.nn.Sequential(
             torch.nn.Linear(self._model_dimension, self._model_dimension),
             torch.nn.BatchNorm1d(self._model_dimension),
@@ -159,22 +161,38 @@ class TemporalContrastive(pl.LightningModule):
         return self._input_projection(x.reshape(-1, self._feature_dimension)).reshape(
             x.shape[0], x.shape[1], self._model_dimension)
 
-    def _encode_sequence(self, x, mlp_name):
-        if mlp_name == 'contrastive':
-            mlp = self._contrastive_mlp
-        elif mlp_name == 'order':
-            mlp = self._order_mlp
-        elif mlp_name == 'type':
-            mlp = self._type_mlp
-        else:
-            pass
+    # method more true to temporal order prediction in literature
+    def _encode_temporal(self, x):
+        sz = self._seqlen // 3
+        x1 = self._audio_feature_model(x[:,:,:sz])
+        x2 = self._audio_feature_model(x[:,:,sz:2*sz])
+        x3 = self._audio_feature_model(x[:,:,2*sz:3*sz])
+
+        x12 = self._encoder(src=self._feature_project(torch.cat((x1, x2), dim=1))).mean(dim=1)
+        x13 = self._encoder(src=self._feature_project(torch.cat((x1, x3), dim=1))).mean(dim=1)
+        x23 = self._encoder(src=self._feature_project(torch.cat((x2, x3), dim=1))).mean(dim=1)
+
+        x123 = torch.cat((x12, x13, x23), dim=-1)
+        output = self._temporal_fc(x123)
+        return output
+
+    
+    def _encode(self, x):
+        # if mlp_name == 'contrastive':
+        #     mlp = self._contrastive_mlp
+        # elif mlp_name == 'order':
+        #     mlp = self._order_mlp
+        # elif mlp_name == 'type':
+        #     mlp = self._type_mlp
+        # else:
+        #     pass
 
         x = self._audio_feature_model(x)
         x = self._feature_project(x)
         encoded = self._encoder(src=x,).mean(dim=1)
   
         #Input [N * D] to mlp
-        encoded = mlp(encoded)
+        # encoded = mlp(encoded)
 
         return encoded
 
@@ -188,6 +206,7 @@ class TemporalContrastive(pl.LightningModule):
 
     def forward(self, batch):
         anchor, spatial, temporal, idx_ord = self.filter_nans(batch)
+
         # anchor, spatial, temporal, idx_ord = batch
 
         # print(anchor.shape)
@@ -195,11 +214,13 @@ class TemporalContrastive(pl.LightningModule):
         # print(temporal.shape)
         # print(idx_ord.shape)
 
-        anchor_clr = self._encode_sequence(anchor, 'contrastive')
-        spatial_clr = self._encode_sequence(spatial, 'contrastive')
-        spatial_type = self._encode_sequence(spatial, 'type')
-        temporal_type = self._encode_sequence(temporal, 'type')
-        temporal_ord = self._encode_sequence(temporal, 'order')
+        anchor = self._encode(anchor)
+        spatial = self._encode(spatial)
+        temporal = self._encode_temporal(temporal)
+
+        anchor_clr, spatial_clr = self._contrastive_mlp(anchor), self._contrastive_mlp(spatial)
+        spatial_type, temporal_type = self._type_mlp(spatial), self._type_mlp(temporal)
+        temporal_ord = self._order_mlp(temporal)
 
         anchor_clr = torch.nn.functional.normalize(anchor_clr, p=2, dim=-1)
         spatial_clr = torch.nn.functional.normalize(spatial_clr, p=2, dim=-1)
@@ -524,24 +545,30 @@ class LinearClassifier(pl.LightningModule):
         self.fc1 = nn.Linear(1280, self.num_classes)
         self.lr = 1e-3
         self.loss = torch.nn.CrossEntropyLoss()
-        self.batch_size = 8
+        self.batch_size = 18
 
         # self.path = 'Desktop/temporal_order_ckpt/temporal_contastive_learning/8cusj0o8/checkpoints/epoch=88.ckpt'
-        self.path = 'Desktop/epoch=88.ckpt'
-        self.base_model = TemporalOrderPrediction()
+        # self.path = 'Desktop/epoch=88.ckpt'
+        self.path = '/home/sgurram/Desktop/temporal_contrastive_ckpt/temporal_contastive_learning/52fdd06p/checkpoints/epoch=25.ckpt'
+        self.base_model = TemporalContrastive()
         # modules = list(self.base_model.children())[:]
-        self.model = nn.Sequential(
-                self.base_model._cnn1,
-                self.base_model._efficientnet,
-        )
-        self.model.load_state_dict(torch.load(self.path), strict=False)
+   
+        self.base_model.load_state_dict(torch.load(self.path), strict=False)
 
+        self._probe_mlp = torch.nn.Sequential(
+            torch.nn.Linear(self.base_model._model_dimension, self.base_model._model_dimension),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self.base_model._model_dimension, self.num_classes),
+            torch.nn.Softmax(),
+        )
+
+        
     def forward(self, x):
-        x = x.unsqueeze(1)
         with torch.no_grad():
-            x = self.model(x)
-        x =  x.squeeze(3).squeeze(2)
-        x = self.fc1(x)
+              x = self.base_model._audio_feature_model(x)
+              x = self.base_model._feature_project(x)
+              x = self.base_model._encoder(src=x,).mean(dim=1)
+        x = self._probe_mlp(x)
         return x
 
     def training_step(self, batch, batch_idx):

@@ -106,7 +106,7 @@ class TemporalContrastiveData(Dataset):
             return anchor, spatial, temporal, torch.tensor([float(shuffle_label)])
 
         except:
-            return torch.ones((128, 1000))/0, torch.ones((128, 1000))/0, torch.ones((128, 999))/0, torch.tensor([float('inf')])
+            return torch.ones((128, 2040))/0, torch.ones((128, 2040))/0, torch.ones((128, 2040))/0, torch.tensor([float('inf')])
 
             # return torch.tensor([float('NaN')]), torch.tensor([float('NaN')]), torch.tensor([float('NaN')]), torch.tensor([float('NaN')])
             # return None, None, None, None
@@ -217,35 +217,37 @@ if __name__ == '__main__':
     print(t.shape)
     print(l.shape)
 
-    batch = (a, s, t, l)
-
     model = TemporalContrastive(batch_size=2)
+
+    batch = (a, s, t, l)
+    print(model._encode_temporal(t).shape)
+    
     output = model(batch)
     loss = model.loss(output)
 
 
     for i in list(output.values()):
-        print(i.shape)
+        print(i)
 
     for k in list(loss.values()):
         print(k)
 
-    x = torch.rand(2, 128, 1000)
-    y = torch.zeros(2, 128, 1000)
-    print(x/0)
+    # x = torch.rand(2, 128, 1000)
+    # y = torch.zeros(2, 128, 1000)
+    # print(x/0)
 
     # batch = torch.stack((x,y))
     # filtered =  torch.Tensor(list(filter(lambda x: x.sum().item()>0, batch)))
 
     # filtered = batch[batch.sum().item() != 0]
 
-    x, y = torch.tensor([float('NaN'), 1, 2]),  torch.tensor([float('inf'), float('inf'), float('inf')])
-    test = torch.stack((x,y))
-    filtered = test[~test.isinf()]
+    # x, y = torch.tensor([float('NaN'), 1, 2]),  torch.tensor([float('inf'), float('inf'), float('inf')])
+    # test = torch.stack((x,y))
+    # filtered = test[~test.isinf()]
     # filtered = test[test == test]
 
-    print(test)
-    print(filtered)
+    # print(test)
+    # print(filtered)
 
     # output = model(data.__getitem__(0))
 

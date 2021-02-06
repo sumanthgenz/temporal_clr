@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     model = TemporalOrderPrediction(num_classes=24)
     wandb_logger.watch(model, log='gradients', log_freq=1)
-    # wandb_logger = None
+    wandb_logger = None
 
     trainer = pl.Trainer(
         default_root_dir='/home/sgurram/Desktop/temporal_order_ckpt', 
@@ -36,8 +36,8 @@ if __name__ == "__main__":
   elif mode == "contrastive":
 
     model = TemporalContrastive()
-    # wandb_logger.watch(model, log='gradients', log_freq=10)
-    wandb_logger = None
+    wandb_logger.watch(model, log='gradients', log_freq=10)
+    # wandb_logger = None
 
     trainer = pl.Trainer(
         default_root_dir='/home/sgurram/Desktop/temporal_contrastive_ckpt', 
@@ -53,10 +53,11 @@ if __name__ == "__main__":
   elif mode == "linear":
 
       model = LinearClassifier()
-      wandb_logger.watch(model, log='gradients', log_freq=10)
+      wandb_logger.watch(model, log='gradients', log_freq=5)
+      # wandb_logger = None
 
       trainer = pl.Trainer(
-          default_root_dir='/home/sgurram/Desktop/temporal_linear_ckpt', 
+          default_root_dir='/home/sgurram/Desktop/temporal_linear', 
           gpus=2, 
           max_epochs=50, 
           logger=wandb_logger,

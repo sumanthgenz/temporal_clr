@@ -42,14 +42,14 @@ def get_log_mel_spec(wave, samp_freq=16000):
     return spec.log2()[0,:,:]
 
 
-def pad_spec(spec, pad_len=1000):
+def pad_spec(spec, pad_len=2040):
     to_pad = pad_len - spec.shape[-1] 
     if to_pad > 0:
         return torch.nn.functional.pad(spec, (0,to_pad,0,0))
     return spec[:,:pad_len]
 
 
-def augment(sample, wave_transform, spec_transform, threshold, fixed_crop=True):
+def augment(sample, wave_transform, spec_transform, threshold, crop=True, fixed=True):
     wave = wave_transform(threshold)(sample)
     wave = wave.type(torch.FloatTensor)
     spec = get_log_mel_spec(wave)
@@ -61,13 +61,15 @@ def augment(sample, wave_transform, spec_transform, threshold, fixed_crop=True):
     #     # return SpecFixedCrop(threshold)(spec)
     #     return spec_transform(threshold)(SpecFixedCrop(threshold)(spec[15:]))
 
+    spec = pad_spec(spec)
 
-    if fixed_crop:
+    if crop and fixed:
         spec = spec_transform(threshold)(SpecFixedCrop(threshold)(spec))
-        spec[torch.isinf(spec)] = 0
-        return spec
-    
-    spec = spec_transform(threshold)(SpecRandomCrop(threshold)(spec))
+    elif crop:
+        spec = spec_transform(threshold)(SpecRandomCrop(threshold)(spec))
+    else:
+        spec = spec_transform(threshold)(spec)
+
     spec[torch.isinf(spec)] = 0
     return spec
 
@@ -77,8 +79,12 @@ def get_augmented_views(path, identity=False):
     threshold2 = random.uniform(0.0, 0.5)
 
     if not identity:
-        wave1 =  random.choice(list(wave_transforms.values()))
-        spec1 =  random.choice(list(spec_transforms.values()))
+
+        wave1 = WaveIdentity
+        spec1 = SpecIdentity
+
+        # wave1 =  random.choice(list(wave_transforms.values()))
+        # spec1 =  random.choice(list(spec_transforms.values()))
 
         wave2 =  random.choice(list(wave_transforms.values()))
         spec2 =  random.choice(list(spec_transforms.values()))
@@ -93,7 +99,7 @@ def get_augmented_views(path, identity=False):
     # print(wave1, spec1)
     # print(wave2, spec2)
 
-    return augment(sample, wave1, spec1, threshold1), augment(sample, wave2, spec2, threshold2)
+    return augment(sample, wave1, spec1, threshold1, crop=False), augment(sample, wave2, spec2, threshold2, crop=False)
 
 def get_temporal_permutes(path):
     sample, _ = get_wave(path)
@@ -103,7 +109,7 @@ def get_temporal_permutes(path):
     threshold = random.uniform(0.0, 0.5)
 
     # Return (anchor, permutes), anchor is single sample, permutes is a list of samples
-    return augment(sample, wave, spec2, threshold)
+    return augment(sample, wave, spec2, threshold, crop=False)
     
 def get_temporal_shuffle(path):
     #assume num_segments = 3
